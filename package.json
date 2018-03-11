@@ -1,0 +1,24 @@
+{
+  "name": "RealeaseRadar",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": {
+    "name": "Yoann Boyer",
+    "email": "code@yoannboyer.com",
+    "url": "yoannboyer.com"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.18.0",
+    "cookie-parser": "^1.4.3",
+    "express": "^4.16.2",
+    "nedb": "^1.8.0",
+    "request": "^2.83.0"
+  }
+}
