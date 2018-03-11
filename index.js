@@ -1,6 +1,7 @@
 const axios = require('axios');
 const Datastore = require('nedb');
 const usersDb = require('./users/db.js');
+const cron = require('node-cron');
 
 const date = new Date();
 date.setDate(date.getDate() - 15);
@@ -173,4 +174,6 @@ const start = async () => {
     });
 };
 
-start();
+cron.schedule('0 0 * * 5', () => {
+    start();
+});

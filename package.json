@@ -19,6 +19,7 @@
     "cookie-parser": "^1.4.3",
     "express": "^4.16.2",
     "nedb": "^1.8.0",
+    "node-cron": "^1.2.1",
     "request": "^2.83.0"
   }
 }
