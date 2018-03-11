@@ -73,6 +73,7 @@ app.get('/callback', (req, res) => {
             };
 
             request.get(options, (error, response, body) => {
+                console.log('Logged user', body);
                 usersDb.update({_id: body.id}, {access_token, refresh_token}, {upsert: true});
             });
 

@@ -157,7 +157,6 @@ const start = async () => {
         chain.then(async () => {
             const crawler = new SpotifyCrawler(user);
             await crawler.init();
-            console.log('yaaa');
 
             console.time('Process');
             return crawler.getPlaylist()
