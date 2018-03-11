@@ -152,28 +152,35 @@ class SpotifyCrawler {
 const start = async () => {
     const users = await find(usersDb);
 
-    const crawler = new SpotifyCrawler(users[0]);
-    await crawler.init();
+    return users.reduce((chain, user) =>
+        chain.then(async () => {
+            const crawler = new SpotifyCrawler(user);
+            await crawler.init();
+            console.log('yaaa');
 
-    console.time('Process');
-    crawler.getPlaylist().then(playlist => {
-        return crawler.getArtists().then(artists => {
-            return artists.reduce((chain, m) =>
-                chain.then((alltracks = []) =>
-                    crawler.getAlbums(m).then(albums => crawler.getTracks(albums)).then(tracks => alltracks.concat(tracks))
-                )
-            , Promise.resolve());
-        }).then(tracks => crawler.addTracks(playlist, tracks));
-    })
-    .then(() => {
-        console.timeEnd('Process');
-    })
-    .catch(err => {
-        console.log(err);
-        console.log(err.response.data);
-    });
+            console.time('Process');
+            return crawler.getPlaylist()
+                .then(playlist => {
+                    return crawler.getArtists().then(artists => {
+                        return artists.reduce((chain, artist) =>
+                            chain.then((alltracks = []) =>
+                                crawler.getAlbums(artist)
+                                    .then(albums => crawler.getTracks(albums))
+                                    .then(tracks => alltracks.concat(tracks))
+                            )
+                        , Promise.resolve());
+                    }).then(tracks => crawler.addTracks(playlist, tracks));
+                })
+                .then(() => console.timeEnd('Process'))
+                .catch(console.error);
+        }), Promise.resolve()
+    );
 };
 
-cron.schedule('0 0 * * 5', () => {
+if (process.env.NODE_ENV === 'production') {
+    cron.schedule('0 0 * * 5', () => {
+        start();
+    });
+} else {
     start();
-});
+}
