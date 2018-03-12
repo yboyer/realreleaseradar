@@ -3,6 +3,7 @@ const Datastore = require('nedb');
 const usersDb = require('./users/db.js');
 const cron = require('node-cron');
 const auth = require('./auth');
+const config = require('./config');
 
 const date = new Date();
 date.setDate(date.getDate() - 15);
@@ -115,14 +116,14 @@ class SpotifyCrawler {
 
     async getPlaylist() {
         return this.request.get(`/users/${this.username}/playlists`).then(({data}) => {
-            const playlist = data.items.filter(i => i.name === 'RealReleaseRadar')[0];
+            const playlist = data.items.filter(i => i.name === config.playlist_name)[0];
 
             if (playlist) {
                 return playlist.id;
             }
 
             return this.request.post(`/users/${this.username}/playlists`, {
-                name: 'RealReleaseRadar'
+                name: config.playlist_name
             }).then(({data}) => {
                 return data.id;
             });
