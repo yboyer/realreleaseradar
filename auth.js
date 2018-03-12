@@ -4,7 +4,6 @@ const querystring = require('querystring');
 const cookieParser = require('cookie-parser');
 const usersDb = require('./users/db.js');
 const EventEmitter = require('events');
-const del = require('del');
 
 const config = require('./config');
 

@@ -88,6 +88,20 @@ class SpotifyCrawler {
         this.tracksDb = tracksDb;
     }
 
+    async isStarted() {
+        return findOne(usersDb, {_id: this.username}).then(doc => doc.started);
+    }
+
+    async toggleStarted() {
+        const started = await this.isStarted();
+
+        return new Promise(resolve => {
+            usersDb.update({_id: this.username}, {$set: {started: !started}}, () => {
+                resolve();
+            });
+        });
+    }
+
     async init() {
         const token = await refresh(this.username);
         this.appears_on = await findOne(usersDb, {_id: this.username}).then(doc => doc.appears_on);
@@ -224,6 +238,12 @@ class SpotifyCrawler {
 
 const crawl = async user => {
     const crawler = new SpotifyCrawler(user);
+    const started = await crawler.isStarted();
+
+    if (started) {
+        return false;
+    }
+    crawler.toggleStarted();
     await crawler.init();
 
     console.time('Process');
@@ -243,7 +263,8 @@ const crawl = async user => {
         .catch(err => {
             console.error(err);
             console.error(err.response.data);
-        });
+        })
+        .then(() => crawler.toggleStarted());
 };
 
 const start = async () => {
