@@ -154,7 +154,7 @@ class SpotifyCrawler {
 
         return this.request.get(`/artists/${artist}/albums?album_type=single,album${this.appears_on !== false ? ',appears_on' : ''}&market=FR&limit=10&offset=0`).then(({data}) => {
             if (!data.items.length) {
-                return;
+                return [];
             }
 
             return new Promise((resolve, reject) => {
