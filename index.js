@@ -165,7 +165,8 @@ class SpotifyCrawler {
             }
 
             return this.request.post(`/users/${this.username}/playlists`, {
-                name: config.playlist_name
+                name: config.playlist_name,
+                description: 'Week releases every friday.'
             }).then(({data}) => {
                 return data.id;
             });
