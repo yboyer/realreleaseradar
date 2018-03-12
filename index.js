@@ -11,6 +11,22 @@ const fifteenDays = date.getTime();
 
 const {refresh} = require('./tools');
 
+const dbs = {
+    _: {},
+
+    get(user) {
+        if (!this._[user]) {
+            this._[user] = {
+                artistsDb: new Datastore({filename: `users/dbs/${user}/artists`, autoload: true}),
+                albumsDb: new Datastore({filename: `users/dbs/${user}/albums`, autoload: true}),
+                tracksDb: new Datastore({filename: `users/dbs/${user}/tracks`, autoload: true})
+            };
+        }
+
+        return this._[user];
+    }
+};
+
 const find = (db, query = {}) => new Promise((resolve, reject) => {
     db.find(query, (err, docs) => {
         if (err) {
@@ -65,15 +81,27 @@ class SpotifyCrawler {
 
         console.log(this.username);
 
-        this.artistsDb = new Datastore({filename: `users/dbs/${this.username}/artists`, autoload: true});
-        this.albumsDb = new Datastore({filename: `users/dbs/${this.username}/albums`, autoload: true});
-        this.tracksDb = new Datastore({filename: `users/dbs/${this.username}/tracks`, autoload: true});
+        const {artistsDb, albumsDb, tracksDb} = dbs.get(this.username);
+
+        this.artistsDb = artistsDb;
+        this.albumsDb = albumsDb;
+        this.tracksDb = tracksDb;
     }
 
     async init() {
         const token = await refresh(this.username);
         this.appears_on = await findOne(usersDb, {_id: this.username}).then(doc => doc.appears_on);
         this.request.defaults.headers.common.Authorization = `Bearer ${token}`;
+    }
+
+    async reset() {
+        Promise.all([this.artistsDb, this.albumsDb, this.tracksDb].map(e => {
+            return new Promise(resolve => {
+                e.remove({}, {multi: true}, () => {
+                    resolve();
+                });
+            });
+        })).then(() => {});
     }
 
     async getArtists(last) {
@@ -110,7 +138,7 @@ class SpotifyCrawler {
         const doNotIncludes = e => !albumsIds.includes(e.id);
         const isReallyNew = e => new Date(e.release_date) > fifteenDays;
 
-        return this.request.get(`/artists/${artist}/albums?album_type=single,album${this.appears_on ? ',appears_on' : ''}&market=FR&limit=10&offset=0`).then(({data}) => {
+        return this.request.get(`/artists/${artist}/albums?album_type=single,album${this.appears_on !== false ? ',appears_on' : ''}&market=FR&limit=10&offset=0`).then(({data}) => {
             if (!data.items.length) {
                 return;
             }
@@ -236,6 +264,15 @@ if (process.env.NODE_ENV === 'production') {
 
 auth.emitter.on('crawl', id => {
     crawl(id);
+});
+auth.emitter.on('delete', id => {
+    const crawler = new SpotifyCrawler(id);
+    crawler.reset();
+});
+auth.emitter.on('reset', id => {
+    const crawler = new SpotifyCrawler(id);
+    crawler.reset()
+        .then(() => crawl(id));
 });
 
 auth.listen(3000, () => console.log('Listening...'));

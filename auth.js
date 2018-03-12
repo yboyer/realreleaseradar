@@ -45,7 +45,7 @@ app.get('/callback', (req, res) => {
     const storedState = req.cookies ? req.cookies[stateKey] : null;
 
     if (state === null || state !== storedState) {
-        return res.redirect(`/login`);
+        return res.end('Invalid token. Please try again.');
     }
 
     res.clearCookie(stateKey);
@@ -83,7 +83,7 @@ app.get('/callback', (req, res) => {
                 });
             });
         } else {
-            res.status(400).end('invalid_token');
+            res.status(400).end('Invalid token');
         }
     });
 });
@@ -96,9 +96,8 @@ app.get('/users/:userId/delete', (req, res) => {
             return res.status(404).end('Not found');
         }
 
-        del([`${__dirname}users/dbs/${id}`], {force: true}).then(() => {
-            return res.end(`${id} deleted`);
-        });
+        app.emitter.emit('delete', id);
+        res.end(`User “${id}” deleted.`);
     });
 });
 
@@ -106,12 +105,13 @@ app.get('/users/:userId/appears_on/:enable', (req, res) => {
     const id = req.params.userId;
     const enabled = req.params.enable === 'true';
 
-    usersDb.update({_id: id}, {$set: {appears_on: enabled}}, (err, numRemoved) => {
-        if (err || numRemoved !== 1) {
+    usersDb.update({_id: id}, {$set: {appears_on: enabled}}, err => {
+        if (err) {
             return res.status(404).end('Not found');
         }
 
-        return res.end(`Include artists appearing on other albums: ${enabled ? 'enabled' : 'disabled'}.`);
+        app.emitter.emit('reset', id);
+        return res.end(`Include artists appearing on other albums: ${enabled ? 'enabled' : 'disabled'}. Retrieving tracks. Please wait.`);
     });
 });
 
