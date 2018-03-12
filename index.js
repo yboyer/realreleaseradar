@@ -128,17 +128,22 @@ class SpotifyCrawler {
         const doNotIncludes = e => !tracksIds.includes(e);
 
         return this.request.get(`/albums?ids=${albums.join(',')}`).then(({data}) => {
-            const tracks = [].concat(...data.albums.map(a => a.tracks.items.map(i => i.uri)));
+            try {
+                const tracks = [].concat(...data.albums.map(a => a.tracks.items.map(i => i.uri)));
+                return new Promise((resolve, reject) => {
+                    this.tracksDb.insert(tracks.filter(doNotIncludes).map(i => ({_id: i})), (err, newDocs) => {
+                        if (err) {
+                            return reject(err);
+                        }
 
-            return new Promise((resolve, reject) => {
-                this.tracksDb.insert(tracks.filter(doNotIncludes).map(i => ({_id: i})), (err, newDocs) => {
-                    if (err) {
-                        return reject(err);
-                    }
-
-                    resolve(newDocs.map(d => d._id));
+                        resolve(newDocs.map(d => d._id));
+                    });
                 });
-            });
+            } catch (e) {
+                console.error(e);
+                console.error(data.albums.map(a => a.tracks.items));
+                return this.getTracks(albums);
+            }
         });
     }
 
