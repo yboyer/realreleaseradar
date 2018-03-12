@@ -1,12 +1,18 @@
-# RealReleaseRadar
-> Creates and updates a Release Radar playlist on Spotify with **all** the new weekly tracks.
+<p align="center">
+  <a href="https://hub.docker.com/r/yboyer/rrr/">
+    <img height="350" src="https://raw.githubusercontent.com/yboyer/realreleaseradar/master/.github/cover.jpg">
+  </a>
+  <p align="center"><i>Real Release Radar</i> Spotify's playlist</p>
+</p>
 
----
-**WIP***
-
----
+> Creates and updates a Release Radar playlist on Spotify with **all** your new weekly tracks.
 
 ## Usage
+1. Go to https://developer.spotify.com/my-applications/
+2. Create an app
+3. Get the client id and the client secret
+4. Set your redirect url _(eg. https://exemple.com/callback)_
+
 ```shell
 docker run --name releaseradar \
   -e CLIENT_ID=$CLIENT_ID \
@@ -15,8 +21,8 @@ docker run --name releaseradar \
   -p 3000:3000 \
   yboyer/rrr
 
-# then go to http://your.url/login
+# then go to http://your.url/login to register to your weekly updates
 ```
 
 ## License
-MIT © [Yoann Boyer](yoannboyer.com)
+MIT © [Yoann Boyer](http://yoannboyer.com)
