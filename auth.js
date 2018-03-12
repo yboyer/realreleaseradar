@@ -45,7 +45,7 @@ app.get('/callback', (req, res) => {
     const storedState = req.cookies ? req.cookies[stateKey] : null;
 
     if (state === null || state !== storedState) {
-        return res.status(400).end(`state_mismatch`);
+        return res.redirect(`/login`);
     }
 
     res.clearCookie(stateKey);
