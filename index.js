@@ -72,7 +72,7 @@ class SpotifyCrawler {
         const doNotIncludes = e => !albumsIds.includes(e.id);
         const isReallyNew = e => new Date(e.release_date) > fifteenDays;
 
-        return this.request.get(`/artists/${artist}/albums?album_type=single,album&market=FR&limit=4&offset=0`).then(({data}) => {
+        return this.request.get(`/artists/${artist}/albums?album_type=single,album,appears_on&market=FR&limit=10&offset=0`).then(({data}) => {
             if (!data.items.length) {
                 return;
             }
