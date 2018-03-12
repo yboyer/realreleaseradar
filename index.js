@@ -25,6 +25,34 @@ class SpotifyCrawler {
         this.request = axios.create({
             baseURL: 'https://api.spotify.com/v1'
         });
+        ['get', 'put', 'post'].forEach(k => {
+            const method = this.request[k];
+            const that = this;
+            this.request[k] = function() {
+                return method(...arguments).catch(err => {
+                    console.log(err.response.data);
+
+                    switch (err.response.status) {
+                        case 429:
+                            return new Promise((resolve, reject) => {
+                                setTimeout(() => {
+                                    return that.request[k](...arguments).then(resolve, reject);
+                                }, Number(err.response.headers['retry-after']) * 1E3);
+                            });
+                        case 400:
+                        case 502:
+                            return new Promise((resolve, reject) => {
+                                setTimeout(() => {
+                                    return that.request[k](...arguments).then(resolve, reject);
+                                }, 1E3);
+                            });
+                        default:
+                            throw err;
+                    }
+                });
+            };
+        });
+
         this.username = username;
 
         console.log(this.username);
