@@ -4,6 +4,7 @@ const querystring = require('querystring');
 const cookieParser = require('cookie-parser');
 const usersDb = require('./users/db.js');
 const EventEmitter = require('events');
+const del = require('del');
 
 const config = require('./config');
 
@@ -87,6 +88,19 @@ app.get('/callback', (req, res) => {
     });
 });
 
+app.get('/users/:userId/delete', (req, res) => {
+    const id = req.params.userId;
+
+    usersDb.remove({_id: id}, {}, (err, numRemoved) => {
+        if (err || numRemoved !== 1) {
+            return res.status(404).end('Not found');
+        }
+
+        del([`${__dirname}users/dbs/${id}`], {force: true}).then(() => {
+            return res.end(`${id} deleted`);
+        });
+    });
+});
 
 app.get('/users/:userId/appears_on/:enable', (req, res) => {
     const id = req.params.userId;
