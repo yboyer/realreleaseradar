@@ -44,7 +44,7 @@ app.get('/callback', (req, res) => {
     const storedState = req.cookies ? req.cookies[stateKey] : null;
 
     if (state === null || state !== storedState) {
-        return res.end(`state_mismatch`);
+        return res.status(400).end(`state_mismatch`);
     }
 
     res.clearCookie(stateKey);
@@ -78,13 +78,26 @@ app.get('/callback', (req, res) => {
                 console.log('Logged user', body);
                 usersDb.update({_id: body.id}, {_id: body.id, access_token, refresh_token}, {upsert: true}, () => {
                     app.emitter.emit('crawl', body.id);
+                    res.end('Done. Now just wait a few minutes for the playlist to fill. (~5min). Each friday the content of the playlist will update with the new releases.');
                 });
             });
-
-            res.end('ok');
         } else {
-            res.end('invalid_token');
+            res.status(400).end('invalid_token');
         }
+    });
+});
+
+
+app.get('/users/:userId/appears_on/:enable', (req, res) => {
+    const id = req.params.userId;
+    const enabled = req.params.enable === 'true';
+
+    usersDb.update({_id: id}, {$set: {appears_on: enabled}}, (err, numRemoved) => {
+        if (err || numRemoved !== 1) {
+            return res.status(404).end('Not found');
+        }
+
+        return res.end(`Include artists appearing on other albums: ${enabled ? 'enabled' : 'disabled'}.`);
     });
 });
 

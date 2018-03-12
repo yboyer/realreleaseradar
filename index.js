@@ -19,6 +19,14 @@ const find = (db, query = {}) => new Promise((resolve, reject) => {
         resolve(docs.map(i => i._id));
     });
 });
+const findOne = (db, query = {}) => new Promise((resolve, reject) => {
+    db.findOne(query, (err, doc) => {
+        if (err) {
+            return reject(err);
+        }
+        resolve(doc);
+    });
+});
 
 class SpotifyCrawler {
     constructor(username) {
@@ -64,6 +72,7 @@ class SpotifyCrawler {
 
     async init() {
         const token = await refresh(this.username);
+        this.appears_on = await findOne(usersDb, {_id: this.username}).then(doc => doc.appears_on);
         this.request.defaults.headers.common.Authorization = `Bearer ${token}`;
     }
 
@@ -101,7 +110,7 @@ class SpotifyCrawler {
         const doNotIncludes = e => !albumsIds.includes(e.id);
         const isReallyNew = e => new Date(e.release_date) > fifteenDays;
 
-        return this.request.get(`/artists/${artist}/albums?album_type=single,album,appears_on&market=FR&limit=10&offset=0`).then(({data}) => {
+        return this.request.get(`/artists/${artist}/albums?album_type=single,album${this.appears_on ? ',appears_on' : ''}&market=FR&limit=10&offset=0`).then(({data}) => {
             if (!data.items.length) {
                 return;
             }
