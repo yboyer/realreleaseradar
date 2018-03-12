@@ -150,30 +150,35 @@ class SpotifyCrawler {
     }
 }
 
+const crawl = async user => {
+    const crawler = new SpotifyCrawler(user);
+    await crawler.init();
+
+    console.time('Process');
+    return crawler.getPlaylist()
+        .then(playlist => {
+            return crawler.getArtists().then(artists => {
+                return artists.reduce((chain, artist) =>
+                    chain.then((alltracks = []) =>
+                        crawler.getAlbums(artist)
+                            .then(albums => crawler.getTracks(albums))
+                            .then(tracks => alltracks.concat(tracks))
+                    )
+                , Promise.resolve());
+            }).then(tracks => crawler.addTracks(playlist, tracks));
+        })
+        .then(() => console.timeEnd('Process'))
+        .catch(err => {
+            console.error(err);
+            console.error(err.response.data);
+        });
+};
+
 const start = async () => {
     const users = await find(usersDb);
 
     return users.reduce((chain, user) =>
-        chain.then(async () => {
-            const crawler = new SpotifyCrawler(user);
-            await crawler.init();
-
-            console.time('Process');
-            return crawler.getPlaylist()
-                .then(playlist => {
-                    return crawler.getArtists().then(artists => {
-                        return artists.reduce((chain, artist) =>
-                            chain.then((alltracks = []) =>
-                                crawler.getAlbums(artist)
-                                    .then(albums => crawler.getTracks(albums))
-                                    .then(tracks => alltracks.concat(tracks))
-                            )
-                        , Promise.resolve());
-                    }).then(tracks => crawler.addTracks(playlist, tracks));
-                })
-                .then(() => console.timeEnd('Process'))
-                .catch(console.error);
-        }), Promise.resolve()
+        chain.then(() => crawl(user)), Promise.resolve()
     );
 };
 
@@ -184,5 +189,9 @@ if (process.env.NODE_ENV === 'production') {
 } else {
     start();
 }
+
+auth.emitter.on('crawl', id => {
+    crawl(id);
+});
 
 auth.listen(3000, () => console.log('Listening...'));

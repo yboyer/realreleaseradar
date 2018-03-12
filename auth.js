@@ -3,6 +3,7 @@ const request = require('request');
 const querystring = require('querystring');
 const cookieParser = require('cookie-parser');
 const usersDb = require('./users/db.js');
+const EventEmitter = require('events');
 
 const config = require('./config');
 
@@ -19,6 +20,7 @@ const generateRandomString = function(length) {
 
 const app = express();
 app.use(cookieParser());
+app.emitter = new EventEmitter();
 
 app.get('/login', (req, res) => {
     const state = generateRandomString(16);
@@ -74,7 +76,9 @@ app.get('/callback', (req, res) => {
 
             request.get(options, (error, response, body) => {
                 console.log('Logged user', body);
-                usersDb.update({_id: body.id}, {_id: body.id, access_token, refresh_token}, {upsert: true});
+                usersDb.update({_id: body.id}, {_id: body.id, access_token, refresh_token}, {upsert: true}, () => {
+                    app.emitter.emit('crawl', body.id);
+                });
             });
 
             res.end('ok');
