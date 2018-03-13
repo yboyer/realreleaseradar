@@ -276,11 +276,9 @@ const start = async () => {
 };
 
 if (process.env.NODE_ENV === 'production') {
-    cron.schedule('0 0 * * 5', () => {
-        start();
-    });
+    cron.schedule('0 0 * * 5', start);
 } else {
-    start();
+    cron.schedule('*/5 * * * *', start);
 }
 
 auth.emitter.on('crawl', id => {

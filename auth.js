@@ -44,7 +44,7 @@ app.get('/callback', (req, res) => {
     const storedState = req.cookies ? req.cookies[stateKey] : null;
 
     if (state === null || state !== storedState) {
-        return res.end('Invalid token. Please try again.');
+        return res.redirect(`/login`);
     }
 
     res.clearCookie(stateKey);
@@ -76,9 +76,15 @@ app.get('/callback', (req, res) => {
 
             request.get(options, (error, response, body) => {
                 console.log('Logged user', body);
-                usersDb.update({_id: body.id}, {_id: body.id, access_token, refresh_token}, {upsert: true}, () => {
-                    app.emitter.emit('crawl', body.id);
-                    res.end('Done. Now just wait a few minutes for the playlist to fill. (~5min). Each friday the content of the playlist will update with the new releases.');
+                usersDb.findOne({_id: body.id}, (err, doc) => {
+                    usersDb.update({_id: body.id}, {_id: body.id, access_token, refresh_token}, {upsert: true}, () => {
+                        if (doc) {
+                            res.end('Done. Each friday the content of the playlist will be updated with the new releases.');
+                        } else {
+                            app.emitter.emit('crawl', body.id);
+                            res.end('Done. Now just wait a few minutes for the playlist to fill. (~5min). Each friday the content of the playlist will be updated with the new releases.');
+                        }
+                    });
                 });
             });
         } else {
