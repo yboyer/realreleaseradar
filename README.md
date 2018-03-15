@@ -18,6 +18,7 @@ docker run --name releaseradar \
   -e CLIENT_ID=$CLIENT_ID \
   -e CLIENT_SECRET=$CLIENT_SECRET \
   -e REDIRECT_URI=$REDIRECT_URI \
+  -v $PWD/releaseradar_data/:/src/users/dbs \
   -p 3000:3000 \
   yboyer/rrr
 

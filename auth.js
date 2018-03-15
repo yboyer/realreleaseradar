@@ -18,6 +18,15 @@ const generateRandomString = function(length) {
     return text;
 };
 
+const findUser = id => new Promise((resolve, reject) => {
+    usersDb.findOne({_id: id}, (err, doc) => {
+        if (err || !doc) {
+            return reject(err);
+        }
+        resolve(doc);
+    });
+});
+
 const app = express();
 app.use(cookieParser());
 app.emitter = new EventEmitter();
@@ -74,17 +83,17 @@ app.get('/callback', (req, res) => {
                 json: true
             };
 
-            request.get(options, (error, response, body) => {
+            request.get(options, async (error, response, body) => {
                 console.log('Logged user', body);
-                usersDb.findOne({_id: body.id}, (err, doc) => {
-                    usersDb.update({_id: body.id}, {_id: body.id, access_token, refresh_token}, {upsert: true}, () => {
-                        if (doc) {
-                            res.end('Done. Each friday the content of the playlist will be updated with the new releases.');
-                        } else {
-                            app.emitter.emit('crawl', body.id);
-                            res.end('Done. Now just wait a few minutes for the playlist to fill. (~5min). Each friday the content of the playlist will be updated with the new releases.');
-                        }
-                    });
+                const user = await findUser(body.id).catch(() => {});
+
+                usersDb.update({_id: body.id}, {_id: body.id, access_token, refresh_token}, {upsert: true}, () => {
+                    if (user) {
+                        res.end('Done. Each friday the content of the playlist will be updated with the new releases.');
+                    } else {
+                        app.emitter.emit('crawl', body.id);
+                        res.end('Done. Now just wait a few minutes for the playlist to fill. (~5min). Each friday the content of the playlist will be updated with the new releases.');
+                    }
                 });
             });
         } else {

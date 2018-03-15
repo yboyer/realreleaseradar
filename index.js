@@ -243,21 +243,23 @@ const crawl = async user => {
     if (started) {
         return false;
     }
-    crawler.toggleStarted();
+    await crawler.toggleStarted();
     await crawler.init();
 
     console.time('Process');
-    return crawler.getPlaylist()
-        .then(playlist => {
-            return crawler.getArtists().then(artists => {
-                return artists.reduce((chain, artist) =>
-                    chain.then((alltracks = []) =>
-                        crawler.getAlbums(artist)
-                            .then(albums => crawler.getTracks(albums))
-                            .then(tracks => alltracks.concat(tracks))
-                    )
-                , Promise.resolve());
-            }).then(tracks => crawler.addTracks(playlist, tracks));
+    return crawler.getArtists()
+        .then(artists => {
+            return artists.reduce((chain, artist) =>
+                chain.then((alltracks = []) =>
+                    crawler.getAlbums(artist)
+                        .then(albums => crawler.getTracks(albums))
+                        .then(tracks => alltracks.concat(tracks))
+                )
+            , Promise.resolve());
+        })
+        .then(tracks => {
+            return crawler.getPlaylist()
+                .then(playlist => crawler.addTracks(playlist, tracks));
         })
         .then(() => console.timeEnd('Process'))
         .catch(err => {
@@ -271,8 +273,8 @@ const start = async () => {
     const users = await find(usersDb);
 
     return users.reduce((chain, user) =>
-        chain.then(() => crawl(user)), Promise.resolve()
-    );
+        chain.then(() => crawl(user))
+    , Promise.resolve());
 };
 
 if (process.env.NODE_ENV === 'production') {
@@ -281,9 +283,7 @@ if (process.env.NODE_ENV === 'production') {
     cron.schedule('*/5 * * * *', start);
 }
 
-auth.emitter.on('crawl', id => {
-    crawl(id);
-});
+auth.emitter.on('crawl', crawl);
 auth.emitter.on('delete', id => {
     const crawler = new SpotifyCrawler(id);
     crawler.reset();
