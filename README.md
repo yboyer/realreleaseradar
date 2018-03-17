@@ -8,10 +8,11 @@
 > Creates and updates a Release Radar playlist on Spotify with **all** your new weekly tracks.
 
 ## Usage
+### Setup
 1. Go to https://developer.spotify.com/my-applications/
 2. Create an app
 3. Get the client id and the client secret
-4. Set your redirect url _(eg. https://exemple.com/callback)_
+4. Set your redirect url _(https://your.base.url/callback -> the `/callback` is important)_
 
 ```shell
 docker run --name releaseradar \
@@ -21,9 +22,12 @@ docker run --name releaseradar \
   -v $PWD/releaseradar_data/:/src/users/dbs \
   -p 3000:3000 \
   yboyer/rrr
-
-# then go to http://your.url/login to register to your weekly updates
 ```
+
+### List of urls
+ - `/login`: Subscribes to the Real Release Radar playlist
+ - `/logout`: Unsubscribes from the service
+ - `/toggle_appears_on`: Toggles the option to include the appearance of artists on other albums _(enabled by default)_
 
 ## License
 MIT © [Yoann Boyer](http://yoannboyer.com)

@@ -79,13 +79,15 @@ class SpotifyCrawler {
 
         this.username = username;
 
-        console.log(this.username);
-
         const {artistsDb, albumsDb, tracksDb} = dbs.get(this.username);
 
         this.artistsDb = artistsDb;
         this.albumsDb = albumsDb;
         this.tracksDb = tracksDb;
+    }
+
+    log() {
+        console.log(this.username, '##', ...arguments);
     }
 
     async isStarted() {
@@ -119,7 +121,7 @@ class SpotifyCrawler {
     }
 
     async getArtists(last) {
-        console.log(`Getting artists for ${this.username}`);
+        this.log(`Getting artists for ${this.username}`);
         const artistsIds = await find(this.artistsDb);
         const doNotIncludes = e => !artistsIds.includes(e.id);
 
@@ -147,7 +149,7 @@ class SpotifyCrawler {
     }
 
     async getAlbums(artist) {
-        console.log(`Getting albums for ${artist}`);
+        this.log(`Getting albums for ${artist}`);
         const albumsIds = await find(this.albumsDb);
         const doNotIncludes = e => !albumsIds.includes(e.id);
         const isReallyNew = e => new Date(e.release_date) > fifteenDays;
@@ -173,7 +175,7 @@ class SpotifyCrawler {
         if (!albums.length) {
             return [];
         }
-        console.log(`Getting tracks for ${albums}`);
+        this.log(`Getting tracks for ${albums}`);
 
         const tracksIds = await find(this.tracksDb);
         const doNotIncludes = e => !tracksIds.includes(e);
@@ -224,7 +226,7 @@ class SpotifyCrawler {
 
         const url = `/users/${this.username}/playlists/${playlist}/tracks`;
 
-        console.log('New tracks:', tracks.length);
+        this.log('New tracks:', tracks.length);
 
         return this.request.put(url, {uris: chunks.shift() || []}).then(() => {
             return chunks.reduce((chain, m) =>
@@ -279,8 +281,6 @@ const start = async () => {
 
 if (process.env.NODE_ENV === 'production') {
     cron.schedule('0 0 * * 5', start);
-} else {
-    cron.schedule('*/5 * * * *', start);
 }
 
 auth.emitter.on('crawl', crawl);

@@ -1,21 +1,29 @@
+const crypto = require('crypto');
 const express = require('express');
+const morgan = require('morgan');
 const request = require('request');
 const querystring = require('querystring');
 const cookieParser = require('cookie-parser');
+const shortid = require('shortid');
 const usersDb = require('./users/db.js');
 const EventEmitter = require('events');
 
 const config = require('./config');
 
 const stateKey = 'spotify_auth_state';
-const generateRandomString = function(length) {
-    let text = '';
-    const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+const actionKey = 'rrr_action';
+const salt = shortid();
 
-    for (let i = 0; i < length; i++) {
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
-    }
-    return text;
+const encrypt = ({key, value}) => crypto.createHmac('sha512', key + salt).update(`${value}`).digest('hex').slice(0, 7);
+
+const codes = {
+    [encrypt({value: 1})]: `Done. Now just wait a few minutes for the playlist to fill. (~5min). Each friday the content of the playlist "${config.playlist_name}" will be updated with the new releases.`,
+    [encrypt({value: 2})]: `Done. Each friday the content of the playlist "${config.playlist_name}" will be updated with the new releases.`,
+    [encrypt({value: 3})]: 'Error. Please retry.',
+    [encrypt({value: 4})]: 'User not logged. Please signin.',
+    [encrypt({value: 5})]: 'User deleted.',
+    [encrypt({value: 6})]: `Include artists appearing on other albums: enabled. Retrieving tracks. Please wait.`,
+    [encrypt({value: 7})]: `Include artists appearing on other albums: disabled. Retrieving tracks. Please wait.`
 };
 
 const findUser = id => new Promise((resolve, reject) => {
@@ -27,13 +35,112 @@ const findUser = id => new Promise((resolve, reject) => {
     });
 });
 
+const querySpotifyUser = access_token => {
+    return new Promise((resolve, reject) => {
+        const options = {
+            url: 'https://api.spotify.com/v1/me',
+            headers: {Authorization: `Bearer ${access_token}`},
+            json: true
+        };
+
+        request.get(options, async (err, response, body) => {
+            if (err) {
+                return reject(err);
+            }
+
+            resolve(body);
+        });
+    });
+};
+
+const getTokens = code => {
+    return new Promise((resolve, reject) => {
+        const authOptions = {
+            url: 'https://accounts.spotify.com/api/token',
+            form: {
+                code,
+                redirect_uri: config.redirect_uri,
+                grant_type: 'authorization_code'
+            },
+            headers: {
+                Authorization: `Basic ${new Buffer(`${config.client_id}:${config.client_secret}`).toString('base64')}`
+            },
+            json: true
+        };
+
+        request.post(authOptions, async (err, response, body) => {
+            if (err) {
+                return reject(err);
+            }
+
+            const access_token = body.access_token;
+            const refresh_token = body.refresh_token;
+
+            resolve({
+                access_token,
+                refresh_token
+            });
+        });
+    });
+};
+
 const app = express();
 app.use(cookieParser());
+app.use(morgan(':date[iso] :remote-addr :method :url HTTP/:http-version :status - :response-time ms'));
 app.emitter = new EventEmitter();
 
-app.get('/login', (req, res) => {
-    const state = generateRandomString(16);
+const actions = {
+    async login({user, access_token, refresh_token, res}) {
+        const dbUser = await findUser(user.id).catch(() => {});
+
+        usersDb.update({_id: user.id}, {_id: user.id, access_token, refresh_token}, {upsert: true}, () => {
+            if (dbUser) {
+                return res.redirect(`/done/${encrypt({value: 2})}`);
+            }
+
+            // app.emitter.emit('crawl', user.id);
+            res.redirect(`/done/${encrypt({value: 1})}`);
+        });
+    },
+
+    async logout({user, res}) {
+        usersDb.remove({_id: user.id}, {}, (err, numRemoved) => {
+            if (!err && numRemoved === 1) {
+                app.emitter.emit('delete', user.id);
+            }
+
+            res.redirect(`/done/${encrypt({value: 5})}`);
+        });
+    },
+
+    async toggle_appears_on({user, res}) {
+        const dbUser = await findUser(user.id).catch(() => {});
+
+        if (!dbUser) {
+            return res.redirect(`/done/${encrypt({value: 4})}`);
+        }
+
+        const enabled = !dbUser.appears_on;
+
+        usersDb.update({_id: user.id}, {$set: {appears_on: enabled}}, () => {
+            app.emitter.emit('reset', user.id);
+            if (enabled) {
+                return res.redirect(`/done/${encrypt({value: 6})}`);
+            }
+            res.redirect(`/done/${encrypt({value: 7})}`);
+        });
+    }
+};
+
+app.get(Object.keys(actions).map(k => `/${k}`), (req, res) => {
+    const state = shortid();
+    const action = req.path.replace('/', '');
+
     res.cookie(stateKey, state);
+    res.cookie(actionKey, encrypt({
+        key: state,
+        value: action
+    }));
 
     const scope = 'user-follow-read playlist-modify-public';
     res.redirect(`https://accounts.spotify.com/authorize?${
@@ -47,86 +154,45 @@ app.get('/login', (req, res) => {
     );
 });
 
-app.get('/callback', (req, res) => {
+const getAction = (state, hash) =>
+    Object.keys(actions)
+        .filter(action =>
+            encrypt({key: state, value: action}) === hash
+        )[0];
+
+app.get('/callback', async (req, res) => {
     const code = req.query.code || null;
     const state = req.query.state || null;
     const storedState = req.cookies ? req.cookies[stateKey] : null;
+    const storedAction = req.cookies ? req.cookies[actionKey] : null;
 
-    if (state === null || state !== storedState) {
-        return res.redirect(`/login`);
+    const action = getAction(state, storedAction);
+
+    console.log('Action:', action);
+
+    if (code === null || state === null || state !== storedState || !action) {
+        return res.redirect(`/done/${encrypt({value: 3})}`);
     }
 
     res.clearCookie(stateKey);
-    const authOptions = {
-        url: 'https://accounts.spotify.com/api/token',
-        form: {
-            code,
-            redirect_uri: config.redirect_uri,
-            grant_type: 'authorization_code'
-        },
-        headers: {
-            Authorization: `Basic ${new Buffer(`${config.client_id}:${config.client_secret}`).toString('base64')}`
-        },
-        json: true
-    };
+    res.clearCookie(actionKey);
 
-    request.post(authOptions, (error, response, body) => {
-        res.clearCookie(stateKey);
+    const {refresh_token, access_token} = await getTokens(code);
 
-        if (!error && response.statusCode === 200) {
-            const access_token = body.access_token;
-            const refresh_token = body.refresh_token;
+    const user = await querySpotifyUser(access_token);
+    console.log('Logged user', user.id);
 
-            const options = {
-                url: 'https://api.spotify.com/v1/me',
-                headers: {Authorization: `Bearer ${access_token}`},
-                json: true
-            };
-
-            request.get(options, async (error, response, body) => {
-                console.log('Logged user', body);
-                const user = await findUser(body.id).catch(() => {});
-
-                usersDb.update({_id: body.id}, {_id: body.id, access_token, refresh_token}, {upsert: true}, () => {
-                    if (user) {
-                        res.end('Done. Each friday the content of the playlist will be updated with the new releases.');
-                    } else {
-                        app.emitter.emit('crawl', body.id);
-                        res.end('Done. Now just wait a few minutes for the playlist to fill. (~5min). Each friday the content of the playlist will be updated with the new releases.');
-                    }
-                });
-            });
-        } else {
-            res.status(400).end('Invalid token');
-        }
+    actions[action]({
+        user,
+        access_token,
+        refresh_token,
+        res
     });
 });
 
-app.get('/users/:userId/delete', (req, res) => {
-    const id = req.params.userId;
-
-    usersDb.remove({_id: id}, {}, (err, numRemoved) => {
-        if (err || numRemoved !== 1) {
-            return res.status(404).end('Not found');
-        }
-
-        app.emitter.emit('delete', id);
-        res.end(`User “${id}” deleted.`);
-    });
-});
-
-app.get('/users/:userId/appears_on/:enable', (req, res) => {
-    const id = req.params.userId;
-    const enabled = req.params.enable === 'true';
-
-    usersDb.update({_id: id}, {$set: {appears_on: enabled}}, err => {
-        if (err) {
-            return res.status(404).end('Not found');
-        }
-
-        app.emitter.emit('reset', id);
-        return res.end(`Include artists appearing on other albums: ${enabled ? 'enabled' : 'disabled'}. Retrieving tracks. Please wait.`);
-    });
+app.get('/done/:code', (req, res) => {
+    const code = req.params.code;
+    res.end(codes[code]);
 });
 
 module.exports = app;
