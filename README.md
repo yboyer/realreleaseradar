@@ -7,6 +7,9 @@
 
 > Creates and updates a Release Radar playlist on Spotify with **all** your new weekly tracks.
 
+ - https://spotify.yoannboyer.com
+
+
 ## Usage
 ### Setup
 1. Go to https://developer.spotify.com/my-applications/

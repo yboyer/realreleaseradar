@@ -132,6 +132,14 @@ const actions = {
     }
 };
 
+app.get('/', (req, res) => {
+    res.end(`Usage:
+- /login: Subscribes to the Real Release Radar playlist
+- /logout: Unsubscribes from the service
+- /toggle_appears_on: Toggles the option to include the appearance of artists on other albums _(enabled by default)_
+`);
+});
+
 app.get(Object.keys(actions).map(k => `/${k}`), (req, res) => {
     const state = shortid();
     const action = req.path.replace('/', '');
