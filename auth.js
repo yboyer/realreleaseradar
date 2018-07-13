@@ -137,6 +137,8 @@ app.get('/', (req, res) => {
 - /login: Subscribes to the Real Release Radar playlist
 - /logout: Unsubscribes from the service
 - /toggle_appears_on: Toggles the option to include the appearance of artists on other albums _(enabled by default)_
+
+https://github.com/yboyer/realreleaseradar
 `);
 });
 
