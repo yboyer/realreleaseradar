@@ -5,7 +5,7 @@
   <p align="center"><i>Real Release Radar</i> Spotify's playlist</p>
 </p>
 
-> Creates and updates a Release Radar playlist on Spotify with **all** your new weekly tracks.
+> Creates and updates, every friday, a Release Radar playlist on Spotify with **all** your new weekly tracks.
 
  - https://spotify.yoannboyer.com
 
