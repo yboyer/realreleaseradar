@@ -1,5 +1,5 @@
 {
-  "name": "RealeaseRadar",
+  "name": "realeaseradar",
   "version": "0.0.1",
   "description": "",
   "main": "index.js",
@@ -11,17 +11,26 @@
   "author": {
     "name": "Yoann Boyer",
     "email": "code@yoannboyer.com",
-    "url": "yoannboyer.com"
+    "url": "https://yoannboyer.com"
   },
   "license": "MIT",
   "dependencies": {
     "axios": "^0.18.0",
     "cookie-parser": "^1.4.3",
-    "express": "^4.16.2",
-    "morgan": "^1.9.0",
+    "express": "^4.16.4",
+    "morgan": "^1.9.1",
     "nedb": "^1.8.0",
     "node-cron": "^1.2.1",
-    "request": "^2.83.0",
-    "shortid": "^2.2.8"
+    "request": "^2.88.0",
+    "shortid": "^2.2.14"
+  },
+  "devDependencies": {
+    "eslint": "^5.7.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-config-prettier": "^3.1.0",
+    "eslint-plugin-ava": "^5.1.1",
+    "eslint-plugin-import": "^2.14.0",
+    "eslint-plugin-prettier": "^3.0.0",
+    "prettier": "^1.12.1"
   }
 }
