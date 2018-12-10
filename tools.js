@@ -1,5 +1,5 @@
 const request = require("request");
-const usersDb = require("./users/db.js");
+const usersDb = require("./users/db");
 
 const config = require("./config");
 

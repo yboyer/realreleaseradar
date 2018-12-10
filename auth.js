@@ -6,8 +6,8 @@ const querystring = require("querystring");
 const cookieParser = require("cookie-parser");
 const shortid = require("shortid");
 const EventEmitter = require("events");
-const usersDb = require("./users/db.js");
 
+const usersDb = require("./users/db");
 const config = require("./config");
 
 const stateKey = "spotify_auth_state";

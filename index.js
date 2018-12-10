@@ -1,7 +1,7 @@
 const axios = require("axios");
 const Datastore = require("nedb");
 const cron = require("node-cron");
-const usersDb = require("./users/db.js");
+const usersDb = require("./users/db");
 const auth = require("./auth");
 const config = require("./config");
 
@@ -32,24 +32,58 @@ const dbs = {
   }
 };
 
-const find = (db, query = {}) =>
-  new Promise((resolve, reject) => {
-    db.find(query, (err, docs) => {
-      if (err) {
-        return reject(err);
-      }
-      return resolve(docs.map(i => i._id));
+const DB = {
+  async find(db, query = {}) {
+    return new Promise((resolve, reject) => {
+      db.find(query, (err, docs) => {
+        if (err) {
+          return reject(err);
+        }
+        return resolve(docs.map(i => i._id));
+      });
     });
-  });
-const findOne = (db, query = {}) =>
-  new Promise((resolve, reject) => {
-    db.findOne(query, (err, doc) => {
-      if (err) {
-        return reject(err);
-      }
-      return resolve(doc);
+  },
+  async findOne(db, query = {}) {
+    return new Promise((resolve, reject) => {
+      db.findOne(query, (err, doc) => {
+        if (err) {
+          return reject(err);
+        }
+        return resolve(doc);
+      });
     });
-  });
+  },
+  async remove(db, query = {}, options = {}) {
+    return new Promise((resolve, reject) => {
+      db.remove(query, options, (err, doc) => {
+        if (err) {
+          return reject(err);
+        }
+        return resolve(doc);
+      });
+    });
+  },
+  async update(db, query = {}, update = {}) {
+    return new Promise((resolve, reject) => {
+      db.update(query, update, (err, doc) => {
+        if (err) {
+          return reject(err);
+        }
+        return resolve(doc);
+      });
+    });
+  },
+  async insert(db, query = {}) {
+    return new Promise((resolve, reject) => {
+      db.insert(query, (err, doc) => {
+        if (err) {
+          return reject(err);
+        }
+        return resolve(doc);
+      });
+    });
+  }
+};
 
 class SpotifyCrawler {
   constructor(username) {
@@ -65,12 +99,12 @@ class SpotifyCrawler {
           switch (err.response.status) {
             case 429:
               return new Promise((resolve, reject) => {
-                const seconds =
-                  Number(err.response.headers["retry-after"]) * 1e3;
-                this.log(`Waiting ${seconds} seconds`);
+                const ms =
+                  Number(err.response.headers["retry-after"]) * 1e3 + 1e3;
+                this.log(`Waiting ${ms / 1000} second`);
                 setTimeout(
                   () => this.request[k](...args).then(resolve, reject),
-                  seconds
+                  ms
                 );
               });
             case 400:
@@ -78,7 +112,7 @@ class SpotifyCrawler {
               return new Promise((resolve, reject) => {
                 setTimeout(
                   () => this.request[k](...args).then(resolve, reject),
-                  1e3
+                  4e3
                 );
               });
             default:
@@ -105,26 +139,22 @@ class SpotifyCrawler {
   }
 
   async isStarted() {
-    return findOne(usersDb, {
-      _id: this.username
-    }).then(doc => doc.started);
+    return DB.findOne(usersDb, { _id: this.username }).then(doc => doc.started);
   }
 
   async toggleStarted() {
     const started = await this.isStarted();
 
-    return new Promise(resolve => {
-      usersDb.update(
-        { _id: this.username },
-        { $set: { started: !started } },
-        () => resolve()
-      );
-    });
+    return DB.update(
+      usersDb,
+      { _id: this.username },
+      { $set: { started: !started } }
+    );
   }
 
   async init() {
     const token = await refresh(this.username);
-    this.appears_on = await findOne(usersDb, { _id: this.username }).then(
+    this.appears_on = await DB.findOne(usersDb, { _id: this.username }).then(
       doc => doc.appears_on
     );
     this.request.defaults.headers.common.Authorization = `Bearer ${token}`;
@@ -132,169 +162,139 @@ class SpotifyCrawler {
 
   async reset() {
     Promise.all(
-      [this.artistsDb, this.albumsDb, this.tracksDb].map(
-        e =>
-          new Promise(resolve => e.remove({}, { multi: true }, () => resolve()))
+      [this.artistsDb, this.albumsDb, this.tracksDb].map(e =>
+        DB.remove(e, {}, { multi: true })
       )
     ).then(() => {});
   }
 
-  async getArtists(last) {
+  async getArtistIds(last) {
     this.log(`Getting artists for ${this.username}`);
-    const artistsIds = await find(this.artistsDb);
-    const doNotIncludes = e => !artistsIds.includes(e.id);
+    if (!last) {
+      await DB.remove(this.artistsDb, {}, { multi: true });
+    }
+    const artistsIds = await DB.find(this.artistsDb);
 
-    return this.request
-      .get(`/me/following?type=artist&limit=50${last ? `&after=${last}` : ""}`)
-      .then(({ data }) => {
-        if (!data.artists.items.length) {
-          return artistsIds;
-        }
+    const { data } = await this.request.get(
+      `/me/following?type=artist&limit=50${last ? `&after=${last}` : ""}`
+    );
+    if (!data.artists.items.length) {
+      return artistsIds;
+    }
 
-        return new Promise((resolve, reject) => {
-          this.artistsDb.insert(
-            data.artists.items.filter(doNotIncludes).map(i => ({ _id: i.id })),
-            async (err, newDocs) => {
-              if (err) {
-                return reject(err);
-              }
+    await DB.insert(
+      this.artistsDb,
+      data.artists.items.map(i => ({
+        _id: i.id,
+        name: i.name
+      }))
+    );
 
-              const lastArtist = newDocs.pop();
-              if (!lastArtist) {
-                const artists = await find(this.artistsDb);
-                return resolve(artists);
-              }
+    const lastArtistId = data.artists.cursors.after;
+    if (!lastArtistId) {
+      const ids = await DB.find(this.artistsDb);
+      this.log("Total received", data.artists.total, `(stored: ${ids.length})`);
+      return ids;
+    }
 
-              return this.getArtists(lastArtist._id).then(resolve, reject);
-            }
-          );
-        });
-      });
+    return this.getArtistIds(lastArtistId);
   }
 
-  async getAlbums(artist) {
-    this.log(`Getting albums for ${artist}`);
-    const albumsIds = await find(this.albumsDb);
+  async getAlbumIds(artistId) {
+    this.log(`Getting albums for ${artistId}`);
+    const albumsIds = await DB.find(this.albumsDb);
     const doNotIncludes = e => !albumsIds.includes(e.id);
     const isReallyNew = e =>
       new Date(e.release_date).getTime() > this.fifteenDays;
 
-    return this.request
-      .get(
-        `/artists/${artist}/albums?album_type=single,album${
-          this.appears_on !== false ? ",appears_on" : ""
-        }&market=FR&limit=10&offset=0`
-      )
-      .then(({ data }) => {
-        if (!data.items.length) {
-          return [];
-        }
+    const { data } = await this.request.get(
+      `/artists/${artistId}/albums?album_type=single,album${
+        this.appears_on !== false ? ",appears_on" : ""
+      }&market=FR&limit=10&offset=0`
+    );
+    if (!data.items.length) {
+      return [];
+    }
 
-        return new Promise((resolve, reject) => {
-          this.albumsDb.insert(
-            data.items
-              .filter(isReallyNew)
-              .filter(doNotIncludes)
-              .map(i => ({ _id: i.id })),
-            (err, newDocs) => {
-              if (err) {
-                return reject(err);
-              }
+    const ids = data.items
+      .filter(isReallyNew)
+      .filter(doNotIncludes)
+      .map(i => ({ _id: i.id }));
+    const newDocs = await DB.insert(this.albumsDb, ids);
 
-              return resolve(newDocs.map(d => d._id));
-            }
-          );
-        });
-      });
+    return newDocs.map(d => d._id);
   }
 
-  async getTracks(albums) {
+  async getTrackURIs(albums) {
     if (!albums.length) {
       return [];
     }
     this.log(`Getting tracks for ${albums}`);
 
-    const tracksIds = await find(this.tracksDb);
+    const tracksIds = await DB.find(this.tracksDb);
     const doNotIncludes = e => !tracksIds.includes(e);
 
-    return this.request
-      .get(`/albums?ids=${albums.join(",")}`)
-      .then(({ data }) => {
-        try {
-          const tracks = [].concat(
-            ...data.albums.map(a => a.tracks.items.map(i => i.uri))
-          );
-          return new Promise((resolve, reject) => {
-            this.tracksDb.insert(
-              tracks.filter(doNotIncludes).map(i => ({
-                _id: i
-              })),
-              (err, newDocs) => {
-                if (err) {
-                  return reject(err);
-                }
-
-                return resolve(newDocs.map(d => d._id));
-              }
-            );
-          });
-        } catch (e) {
-          this.log(e);
-          this.log(data.albums.map(a => a.tracks.items));
-          return this.getTracks(albums);
-        }
-      });
+    const { data } = await this.request.get(`/albums?ids=${albums.join(",")}`);
+    try {
+      const tracks = [].concat(
+        ...data.albums.map(a => a.tracks.items.map(i => i.uri))
+      );
+      const newDocs = await DB.insert(
+        this.tracksDb,
+        tracks.filter(doNotIncludes).map(i => ({ _id: i }))
+      );
+      return newDocs.map(d => d._id);
+    } catch (e) {
+      this.log(e);
+      this.log(data.albums.map(a => a.tracks.items));
+      return this.getTrackURIs(albums);
+    }
   }
 
-  async getPlaylist() {
-    return this.request
-      .get(`/users/${this.username}/playlists`)
-      .then(resGet => {
-        const playlist = resGet.data.items.find(
-          p => p.name === config.playlist_name
-        );
+  async getPlaylistId() {
+    const resGet = await this.request.get(`/users/${this.username}/playlists`);
 
-        if (playlist) {
-          return playlist.id;
-        }
-
-        return this.request
-          .post(`/users/${this.username}/playlists`, {
-            name: config.playlist_name,
-            description: config.playlist_description
-          })
-          .then(resCreate => resCreate.data.id);
-      });
-  }
-
-  async addTracks(playlist, tracks) {
-    const chunkSize = 100;
-    const chunks = [];
-    for (let i = 0, j = tracks.length; i < j; i += chunkSize) {
-      chunks.push(tracks.slice(i, i + chunkSize));
+    const playlist = resGet.data.items.find(
+      p => p.name === config.playlist_name
+    );
+    if (playlist) {
+      return playlist.id;
     }
 
-    const url = `/users/${this.username}/playlists/${playlist}/tracks`;
+    const resCreate = await this.request.post(
+      `/users/${this.username}/playlists`,
+      {
+        name: config.playlist_name,
+        description: config.playlist_description
+      }
+    );
+    return resCreate.data.id;
+  }
 
-    this.log("New tracks:", tracks.length);
+  async addTracks(playlistId, trackIds) {
+    this.log("New tracks:", trackIds.length);
 
-    return this.request
-      .put(url, { uris: chunks.shift() || [] })
-      .then(() =>
-        chunks
-          .reduce(
-            (chain, m) => chain.then(() => this.request.post(url, { uris: m })),
-            Promise.resolve()
-          )
-          .then(() => {})
-      );
+    const chunkSize = 100;
+    const chunks = [];
+    for (let i = 0, j = trackIds.length; i < j; i += chunkSize) {
+      chunks.push(trackIds.slice(i, i + chunkSize));
+    }
+
+    const url = `/users/${this.username}/playlists/${playlistId}/tracks`;
+
+    await this.request.put(url, { uris: chunks.shift() || [] });
+    return chunks
+      .reduce(
+        (chain, m) => chain.then(() => this.request.post(url, { uris: m })),
+        Promise.resolve()
+      )
+      .then(() => {});
   }
 }
 
 const crawl = async user => {
   const crawler = new SpotifyCrawler(user);
   const started = await crawler.isStarted();
-
   if (started) {
     return false;
   }
@@ -302,35 +302,33 @@ const crawl = async user => {
   await crawler.init();
 
   console.time("Process");
-  return crawler
-    .getArtists()
-    .then(artists =>
-      artists.reduce(
-        (chain, artist) =>
-          chain.then((alltracks = []) =>
-            crawler
-              .getAlbums(artist)
-              .then(albums => crawler.getTracks(albums))
-              .then(tracks => alltracks.concat(tracks))
-          ),
-        Promise.resolve()
-      )
-    )
-    .then(tracks =>
-      crawler
-        .getPlaylist()
-        .then(playlist => crawler.addTracks(playlist, tracks))
-    )
-    .then(() => console.timeEnd("Process"))
-    .catch(err => {
-      console.error(err);
-      console.error(err.response.data);
-    })
-    .then(() => crawler.toggleStarted());
+  try {
+    const artists = await crawler.getArtistIds();
+
+    const tracks = await artists.reduce(
+      (chain, artist) =>
+        chain.then(async (arr = []) => {
+          const albumIds = await crawler.getAlbumIds(artist);
+          const trackIds = await crawler.getTrackURIs(albumIds);
+          return arr.concat(trackIds);
+        }),
+      Promise.resolve()
+    );
+
+    const playlist = await crawler.getPlaylistId();
+    await crawler.addTracks(playlist, tracks);
+  } catch (err) {
+    console.error(err);
+  } finally {
+    console.timeEnd("Process");
+    await crawler.toggleStarted();
+  }
+
+  return true;
 };
 
 const start = async () => {
-  const users = await find(usersDb);
+  const users = await DB.find(usersDb);
 
   return users.reduce(
     (chain, user) => chain.then(() => crawl(user)),
@@ -345,11 +343,12 @@ if (process.env.NODE_ENV === "production") {
 auth.emitter.on("crawl", crawl);
 auth.emitter.on("delete", id => {
   const crawler = new SpotifyCrawler(id);
-  crawler.reset();
+  return crawler.reset();
 });
-auth.emitter.on("reset", id => {
+auth.emitter.on("reset", async id => {
   const crawler = new SpotifyCrawler(id);
-  crawler.reset().then(() => crawl(id));
+  await crawler.reset();
+  return crawl(id);
 });
 
 auth.listen(3000, () => console.log("Listening..."));
