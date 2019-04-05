@@ -1,11 +1,11 @@
-const axios = require("axios");
-const Datastore = require("nedb");
-const cron = require("node-cron");
-const usersDb = require("./users/db");
-const auth = require("./auth");
-const config = require("./config");
+const axios = require('axios');
+const Datastore = require('nedb');
+const cron = require('node-cron');
+const usersDb = require('./users/db');
+const auth = require('./auth');
+const config = require('./config');
 
-const { refresh } = require("./tools");
+const { refresh } = require('./tools');
 
 const dbs = {
   _: {},
@@ -15,21 +15,21 @@ const dbs = {
       this._[user] = {
         artistsDb: new Datastore({
           filename: `users/dbs/${user}/artists`,
-          autoload: true
+          autoload: true,
         }),
         albumsDb: new Datastore({
           filename: `users/dbs/${user}/albums`,
-          autoload: true
+          autoload: true,
         }),
         tracksDb: new Datastore({
           filename: `users/dbs/${user}/tracks`,
-          autoload: true
-        })
+          autoload: true,
+        }),
       };
     }
 
     return this._[user];
-  }
+  },
 };
 
 const DB = {
@@ -82,37 +82,34 @@ const DB = {
         return resolve(doc);
       });
     });
-  }
+  },
 };
 
 class SpotifyCrawler {
   constructor(username) {
     this.request = axios.create({
-      baseURL: "https://api.spotify.com/v1"
+      baseURL: 'https://api.spotify.com/v1',
     });
-    ["get", "put", "post"].forEach(k => {
+    ['get', 'put', 'post'].forEach(k => {
       const method = this.request[k];
       this.request[k] = (...args) =>
         method(...args).catch(err => {
           this.log(err.response.status, err.response.data);
 
           switch (err.response.status) {
+            case 400:
             case 429:
+            case 500:
+            case 501:
+            case 502:
               return new Promise((resolve, reject) => {
                 const ms =
-                  Number(err.response.headers["retry-after"]) * 1e3 + 1e3;
+                  Number(err.response.headers['retry-after']) * 1e3 + 1e3 ||
+                  3e3;
                 this.log(`Waiting ${ms / 1000} second`);
                 setTimeout(
                   () => this.request[k](...args).then(resolve, reject),
-                  ms
-                );
-              });
-            case 400:
-            case 502:
-              return new Promise((resolve, reject) => {
-                setTimeout(
-                  () => this.request[k](...args).then(resolve, reject),
-                  4e3
+                  ms,
                 );
               });
             default:
@@ -135,7 +132,7 @@ class SpotifyCrawler {
   }
 
   log(...args) {
-    console.log(this.username, "##", ...args);
+    console.log(this.username, '##', ...args);
   }
 
   async isStarted() {
@@ -148,14 +145,14 @@ class SpotifyCrawler {
     return DB.update(
       usersDb,
       { _id: this.username },
-      { $set: { started: !started } }
+      { $set: { started: !started } },
     );
   }
 
   async init() {
     const token = await refresh(this.username);
     this.appears_on = await DB.findOne(usersDb, { _id: this.username }).then(
-      doc => doc.appears_on
+      doc => doc.appears_on,
     );
     this.request.defaults.headers.common.Authorization = `Bearer ${token}`;
   }
@@ -163,8 +160,8 @@ class SpotifyCrawler {
   async reset() {
     Promise.all(
       [this.artistsDb, this.albumsDb, this.tracksDb].map(e =>
-        DB.remove(e, {}, { multi: true })
-      )
+        DB.remove(e, {}, { multi: true }),
+      ),
     ).then(() => {});
   }
 
@@ -176,7 +173,7 @@ class SpotifyCrawler {
     const artistsIds = await DB.find(this.artistsDb);
 
     const { data } = await this.request.get(
-      `/me/following?type=artist&limit=50${last ? `&after=${last}` : ""}`
+      `/me/following?type=artist&limit=50${last ? `&after=${last}` : ''}`,
     );
     if (!data.artists.items.length) {
       return artistsIds;
@@ -186,14 +183,14 @@ class SpotifyCrawler {
       this.artistsDb,
       data.artists.items.map(i => ({
         _id: i.id,
-        name: i.name
-      }))
+        name: i.name,
+      })),
     );
 
     const lastArtistId = data.artists.cursors.after;
     if (!lastArtistId) {
       const ids = await DB.find(this.artistsDb);
-      this.log("Total received", data.artists.total, `(stored: ${ids.length})`);
+      this.log('Total received', data.artists.total, `(stored: ${ids.length})`);
       return ids;
     }
 
@@ -209,8 +206,8 @@ class SpotifyCrawler {
 
     const { data } = await this.request.get(
       `/artists/${artistId}/albums?album_type=single,album${
-        this.appears_on !== false ? ",appears_on" : ""
-      }&market=FR&limit=10&offset=0`
+        this.appears_on !== false ? ',appears_on' : ''
+      }&market=FR&limit=10&offset=0`,
     );
     if (!data.items.length) {
       return [];
@@ -234,14 +231,14 @@ class SpotifyCrawler {
     const tracksIds = await DB.find(this.tracksDb);
     const doNotIncludes = e => !tracksIds.includes(e);
 
-    const { data } = await this.request.get(`/albums?ids=${albums.join(",")}`);
+    const { data } = await this.request.get(`/albums?ids=${albums.join(',')}`);
     try {
       const tracks = [].concat(
-        ...data.albums.map(a => a.tracks.items.map(i => i.uri))
+        ...data.albums.map(a => a.tracks.items.map(i => i.uri)),
       );
       const newDocs = await DB.insert(
         this.tracksDb,
-        tracks.filter(doNotIncludes).map(i => ({ _id: i }))
+        tracks.filter(doNotIncludes).map(i => ({ _id: i })),
       );
       return newDocs.map(d => d._id);
     } catch (e) {
@@ -255,7 +252,7 @@ class SpotifyCrawler {
     const resGet = await this.request.get(`/users/${this.username}/playlists`);
 
     const playlist = resGet.data.items.find(
-      p => p.name === config.playlist_name
+      p => p.name === config.playlist_name,
     );
     if (playlist) {
       return playlist.id;
@@ -265,14 +262,14 @@ class SpotifyCrawler {
       `/users/${this.username}/playlists`,
       {
         name: config.playlist_name,
-        description: config.playlist_description
-      }
+        description: config.playlist_description,
+      },
     );
     return resCreate.data.id;
   }
 
   async addTracks(playlistId, trackIds) {
-    this.log("New tracks:", trackIds.length);
+    this.log('New tracks:', trackIds.length);
 
     const chunkSize = 100;
     const chunks = [];
@@ -286,7 +283,7 @@ class SpotifyCrawler {
     return chunks
       .reduce(
         (chain, m) => chain.then(() => this.request.post(url, { uris: m })),
-        Promise.resolve()
+        Promise.resolve(),
       )
       .then(() => {});
   }
@@ -301,7 +298,7 @@ const crawl = async user => {
   await crawler.toggleStarted();
   await crawler.init();
 
-  console.time("Process");
+  console.time('Process');
   try {
     const artists = await crawler.getArtistIds();
 
@@ -312,7 +309,7 @@ const crawl = async user => {
           const trackIds = await crawler.getTrackURIs(albumIds);
           return arr.concat(trackIds);
         }),
-      Promise.resolve()
+      Promise.resolve(),
     );
 
     const playlist = await crawler.getPlaylistId();
@@ -320,7 +317,7 @@ const crawl = async user => {
   } catch (err) {
     console.error(err);
   } finally {
-    console.timeEnd("Process");
+    console.timeEnd('Process');
     await crawler.toggleStarted();
   }
 
@@ -332,23 +329,23 @@ const start = async () => {
 
   return users.reduce(
     (chain, user) => chain.then(() => crawl(user)),
-    Promise.resolve()
+    Promise.resolve(),
   );
 };
 
-if (process.env.NODE_ENV === "production") {
-  cron.schedule("0 0 * * 5", start);
+if (process.env.NODE_ENV === 'production') {
+  cron.schedule('0 0 * * 5', start);
 }
 
-auth.emitter.on("crawl", crawl);
-auth.emitter.on("delete", id => {
+auth.emitter.on('crawl', crawl);
+auth.emitter.on('delete', id => {
   const crawler = new SpotifyCrawler(id);
   return crawler.reset();
 });
-auth.emitter.on("reset", async id => {
+auth.emitter.on('reset', async id => {
   const crawler = new SpotifyCrawler(id);
   await crawler.reset();
   return crawl(id);
 });
 
-auth.listen(3000, () => console.log("Listening..."));
+auth.listen(3000, () => console.log('Listening...'));
