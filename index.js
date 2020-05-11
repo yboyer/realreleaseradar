@@ -1,6 +1,6 @@
 const axios = require('axios');
 const Datastore = require('nedb');
-const cron = require('node-cron');
+const { CronJob } = require('cron');
 const usersDb = require('./users/db');
 const auth = require('./auth');
 const config = require('./config');
@@ -179,13 +179,19 @@ class SpotifyCrawler {
       return artistsIds;
     }
 
-    await DB.insert(
-      this.artistsDb,
-      data.artists.items.map(i => ({
+    const artists = data.artists.items
+      .map(i => ({
         _id: i.id,
         name: i.name,
-      })),
-    );
+      }))
+      .filter(
+        // remove duplicates
+        (artist, i, self) =>
+          i === self.findIndex(t => t._id === artist._id) &&
+          !artistsIds.includes(artist._id),
+      );
+
+    await DB.insert(this.artistsDb, artists);
 
     const lastArtistId = data.artists.cursors.after;
     if (!lastArtistId) {
@@ -222,7 +228,7 @@ class SpotifyCrawler {
     return newDocs.map(d => d._id);
   }
 
-  async getTrackURIs(albums) {
+  async getTrackURIs(albums = []) {
     if (!albums.length) {
       return [];
     }
@@ -268,7 +274,7 @@ class SpotifyCrawler {
     return resCreate.data.id;
   }
 
-  async addTracks(playlistId, trackIds) {
+  async addTracks(playlistId, trackIds = []) {
     this.log('New tracks:', trackIds.length);
 
     const chunkSize = 100;
@@ -293,6 +299,7 @@ const crawl = async user => {
   const crawler = new SpotifyCrawler(user);
   const started = await crawler.isStarted();
   if (started) {
+    crawler.log('Already started');
     return false;
   }
   await crawler.toggleStarted();
@@ -309,7 +316,7 @@ const crawl = async user => {
           const trackIds = await crawler.getTrackURIs(albumIds);
           return arr.concat(trackIds);
         }),
-      Promise.resolve(),
+      Promise.resolve([]),
     );
 
     const playlist = await crawler.getPlaylistId();
@@ -327,6 +334,8 @@ const crawl = async user => {
 const start = async () => {
   const users = await DB.find(usersDb);
 
+  console.log('Users:', users.join(', '));
+
   return users.reduce(
     (chain, user) => chain.then(() => crawl(user)),
     Promise.resolve(),
@@ -334,7 +343,8 @@ const start = async () => {
 };
 
 if (process.env.NODE_ENV === 'production') {
-  cron.schedule('0 0 * * 5', start);
+  // eslint-disable-next-line no-new
+  new CronJob('0 0 * * 5', start, null, true);
 }
 
 auth.emitter.on('crawl', crawl);

@@ -17,10 +17,10 @@
   "dependencies": {
     "axios": "^0.18.0",
     "cookie-parser": "^1.4.3",
+    "cron": "^1.8.2",
     "express": "^4.16.4",
     "morgan": "^1.9.1",
     "nedb": "^1.8.0",
-    "node-cron": "^1.2.1",
     "request": "^2.88.0",
     "shortid": "^2.2.14"
   },
