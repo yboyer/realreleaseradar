@@ -303,10 +303,11 @@ const crawl = async user => {
     return false;
   }
   await crawler.toggleStarted();
-  await crawler.init();
 
-  console.time('Process');
   try {
+    await crawler.init();
+
+    console.time('Process');
     const artists = await crawler.getArtistIds();
 
     const tracks = await artists.reduce(

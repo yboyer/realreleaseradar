@@ -4,7 +4,7 @@ const usersDb = require('./users/db');
 const config = require('./config');
 
 exports.refresh = async _id =>
-  new Promise(resolve => {
+  new Promise((resolve, reject) => {
     usersDb.findOne({ _id }, (err, doc) => {
       const authOptions = {
         url: 'https://accounts.spotify.com/api/token',
@@ -28,6 +28,8 @@ exports.refresh = async _id =>
           usersDb.update({ _id }, { $set: { access_token } });
 
           resolve(access_token);
+        } else {
+          reject(response.body)
         }
       });
     });
