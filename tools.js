@@ -1,11 +1,12 @@
-const request = require('request');
+const got = require('got');
 const usersDb = require('./users/db');
 
 const config = require('./config');
 
 exports.refresh = async _id =>
   new Promise((resolve, reject) => {
-    usersDb.findOne({ _id }, (err, doc) => {
+    // eslint-disable-next-line camelcase
+    usersDb.findOne({ _id }, async (_, { refresh_token }) => {
       const authOptions = {
         url: 'https://accounts.spotify.com/api/token',
         headers: {
@@ -15,22 +16,17 @@ exports.refresh = async _id =>
         },
         form: {
           grant_type: 'refresh_token',
-          refresh_token: doc.refresh_token,
+          refresh_token,
         },
-        json: true,
+        responseType: 'json',
       };
 
-      request.post(authOptions, (error, response, body) => {
-        if (!error && response.statusCode === 200) {
-          // eslint-disable-next-line camelcase
-          const { access_token } = body;
+      const { body } = await got.post(authOptions).catch(reject);
+      // eslint-disable-next-line camelcase
+      const { access_token } = body;
 
-          usersDb.update({ _id }, { $set: { access_token } });
+      usersDb.update({ _id }, { $set: { access_token } });
 
-          resolve(access_token);
-        } else {
-          reject(response.body)
-        }
-      });
+      resolve(access_token);
     });
   });

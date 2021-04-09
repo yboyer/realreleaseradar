@@ -1,4 +1,4 @@
-FROM node:9.5.0-alpine
+FROM node:14-alpine3.13
 
 WORKDIR /src
 
@@ -6,7 +6,8 @@ ENV NODE_ENV=production
 
 # Packages
 COPY package.json .
-RUN npm i --ignore-scripts --only=prod && \
+COPY package-lock.json .
+RUN npm ci && \
     npm rb && \
     npm prune
 

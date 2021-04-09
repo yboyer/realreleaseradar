@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 const express = require('express');
 const morgan = require('morgan');
-const request = require('request');
+const got = require('got');
 const querystring = require('querystring');
 const cookieParser = require('cookie-parser');
 const shortid = require('shortid');
@@ -51,54 +51,43 @@ const findUser = id =>
     });
   });
 
-const querySpotifyUser = accessToken =>
-  new Promise((resolve, reject) => {
-    const options = {
-      url: 'https://api.spotify.com/v1/me',
-      headers: { Authorization: `Bearer ${accessToken}` },
-      json: true,
-    };
+const querySpotifyUser = async accessToken => {
+  const options = {
+    url: 'https://api.spotify.com/v1/me',
+    headers: { Authorization: `Bearer ${accessToken}` },
+    responseType: 'json',
+  };
 
-    request.get(options, async (err, response, body) => {
-      if (err) {
-        return reject(err);
-      }
+  const { body } = await got.get(options);
+  return body;
+};
 
-      return resolve(body);
-    });
-  });
+const getTokens = async code => {
+  const authOptions = {
+    url: 'https://accounts.spotify.com/api/token',
+    form: {
+      code,
+      redirect_uri: config.redirect_uri,
+      grant_type: 'authorization_code',
+    },
+    headers: {
+      Authorization: `Basic ${Buffer.from(
+        `${config.client_id}:${config.client_secret}`,
+      ).toString('base64')}`,
+    },
+    responseType: 'json',
+  };
 
-const getTokens = code =>
-  new Promise((resolve, reject) => {
-    const authOptions = {
-      url: 'https://accounts.spotify.com/api/token',
-      form: {
-        code,
-        redirect_uri: config.redirect_uri,
-        grant_type: 'authorization_code',
-      },
-      headers: {
-        Authorization: `Basic ${Buffer.from(
-          `${config.client_id}:${config.client_secret}`,
-        ).toString('base64')}`,
-      },
-      json: true,
-    };
+  const {
+    // eslint-disable-next-line camelcase
+    body: { access_token, refresh_token },
+  } = await got.post(authOptions);
 
-    request.post(authOptions, async (err, response, body) => {
-      if (err) {
-        return reject(err);
-      }
-
-      // eslint-disable-next-line camelcase
-      const { access_token, refresh_token } = body;
-
-      return resolve({
-        access_token,
-        refresh_token,
-      });
-    });
-  });
+  return {
+    access_token,
+    refresh_token,
+  };
+};
 
 const app = express();
 app.use(cookieParser());
@@ -111,7 +100,7 @@ app.emitter = new EventEmitter();
 
 const actions = {
   // eslint-disable-next-line camelcase
-  async login({ user, access_token, refresh_token, res }) {
+  async subscribe({ user, access_token, refresh_token, res }) {
     const dbUser = await findUser(user.id).catch(() => {});
 
     usersDb.update(
@@ -123,13 +112,13 @@ const actions = {
           return res.redirect(`/done/${encrypt({ value: 2 })}`);
         }
 
-        // app.emitter.emit('crawl', user.id);
+        app.emitter.emit('crawl', user.id);
         return res.redirect(`/done/${encrypt({ value: 1 })}`);
       },
     );
   },
 
-  async logout({ user, res }) {
+  async unsubscribe({ user, res }) {
     usersDb.remove({ _id: user.id }, {}, (err, numRemoved) => {
       if (!err && numRemoved === 1) {
         app.emitter.emit('delete', user.id);
@@ -162,8 +151,8 @@ const actions = {
 app.get('/', (req, res) => {
   res.end(`<html><body><pre>
 Usage:
-- <a href="/login">/login</a>: Subscribes to the Real Release Radar playlist
-- <a href="/logout">/logout</a>: Unsubscribes from the service
+- <a href="/subscribe">/subscribe</a>: Subscribes to the Real Release Radar playlist
+- <a href="/unsubscribe">/unsubscribe</a>: Unsubscribes from the service
 - <a href="/toggle_appears_on">/toggle_appears_on</a>: Toggles the option to include the appearance of artists on other albums _(enabled by default)_
 
 <a href="https://github.com/yboyer/realreleaseradar">https://github.com/yboyer/realreleaseradar</a>
@@ -233,6 +222,16 @@ app.get('/callback', async (req, res) => {
 
 app.get('/done/:code', (req, res) => {
   res.end(codes[req.params.code]);
+});
+
+app.get('/crawl/:userId', (req, res) => {
+  app.emitter.emit('crawl', req.params.userId);
+  return res.redirect(`/done/${encrypt({ value: 1 })}`);
+});
+
+app.get('/reset/:userId', (req, res) => {
+  app.emitter.emit('reset', req.params.userId);
+  return res.redirect(`/done/${encrypt({ value: 1 })}`);
 });
 
 module.exports = app;

@@ -10,6 +10,7 @@ module.exports = {
   rules: {
     "no-underscore-dangle": "off",
     "no-restricted-syntax": "off",
-    "no-await-in-loop": "off"
+    "no-await-in-loop": "off",
+    "no-console": "off",
   }
 };
