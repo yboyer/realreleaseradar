@@ -1,17 +1,24 @@
 module.exports = {
+  extends: [
+    'plugin:prettier/recommended',
+    'plugin:import/errors',
+    'plugin:import/warnings',
+  ],
+  plugins: ['import', 'prettier'],
+  parserOptions: {
+    ecmaVersion: 2019,
+  },
   env: {
     node: true,
+    es6: true,
   },
-  extends: [
-    'airbnb-base',
-    'plugin:prettier/recommended',
-    'plugin:ava/recommended',
-  ],
   rules: {
-    'no-underscore-dangle': 'off',
-    'no-restricted-syntax': 'off',
-    'no-await-in-loop': 'off',
-    'no-console': 'off',
+    'prefer-const': 'warn',
+    'max-lines': 'warn',
+    'prefer-template': 'error',
+    'no-undef': 'error',
+    'no-unused-vars': 'error',
+    'max-lines': 'off',
     'prettier/prettier': [
       'error',
       {

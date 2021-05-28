@@ -39,7 +39,7 @@ const codes = {
   })]: `Include artists appearing on other albums: disabled. Retrieving tracks. Please wait.`,
 }
 
-const findUser = id =>
+const findUser = (id) =>
   new Promise((resolve, reject) => {
     usersDb.findOne({ _id: id }, (err, doc) => {
       if (err || !doc) {
@@ -49,7 +49,7 @@ const findUser = id =>
     })
   })
 
-const querySpotifyUser = async accessToken => {
+const querySpotifyUser = async (accessToken) => {
   const options = {
     url: 'https://api.spotify.com/v1/me',
     headers: { Authorization: `Bearer ${accessToken}` },
@@ -60,7 +60,7 @@ const querySpotifyUser = async accessToken => {
   return body
 }
 
-const getTokens = async code => {
+const getTokens = async (code) => {
   const authOptions = {
     url: 'https://accounts.spotify.com/api/token',
     form: {
@@ -70,7 +70,7 @@ const getTokens = async code => {
     },
     headers: {
       Authorization: `Basic ${Buffer.from(
-        `${config.client_id}:${config.client_secret}`,
+        `${config.client_id}:${config.client_secret}`
       ).toString('base64')}`,
     },
     responseType: 'json',
@@ -91,8 +91,8 @@ const app = express()
 app.use(cookieParser())
 app.use(
   morgan(
-    ':date[iso] :remote-addr :method :url HTTP/:http-version :status - :response-time ms',
-  ),
+    ':date[iso] :remote-addr :method :url HTTP/:http-version :status - :response-time ms'
+  )
 )
 app.emitter = new EventEmitter()
 
@@ -112,7 +112,7 @@ const actions = {
 
         app.emitter.emit('crawl', user.id)
         return res.redirect(`/done/${encrypt({ value: 1 })}`)
-      },
+      }
     )
   },
 
@@ -137,7 +137,7 @@ const actions = {
     const enabled = !dbUser.appears_on
 
     usersDb.update({ _id: user.id }, { $set: { appears_on: enabled } }, () => {
-      app.emitter.emit('reset', user.id)
+      app.emitter.emit('reset', user.id, 7)
       if (enabled) {
         return res.redirect(`/done/${encrypt({ value: 6 })}`)
       }
@@ -158,7 +158,7 @@ Usage:
 })
 
 app.get(
-  Object.keys(actions).map(k => `/${k}`),
+  Object.keys(actions).map((k) => `/${k}`),
   (req, res) => {
     const state = shortid()
     const action = req.path.replace('/', '')
@@ -169,7 +169,7 @@ app.get(
       encrypt({
         key: state,
         value: action,
-      }),
+      })
     )
 
     const scope = 'user-follow-read playlist-modify-public'
@@ -180,14 +180,14 @@ app.get(
         scope,
         redirect_uri: config.redirect_uri,
         state,
-      })}`,
+      })}`
     )
-  },
+  }
 )
 
 const getAction = (state, hash) =>
   Object.keys(actions).filter(
-    action => encrypt({ key: state, value: action }) === hash,
+    (action) => encrypt({ key: state, value: action }) === hash
   )[0]
 
 app.get('/callback', async (req, res) => {
@@ -226,12 +226,12 @@ app.get('/done/:code', (req, res) => {
 })
 
 app.get('/crawl/:userId', (req, res) => {
-  app.emitter.emit('crawl', req.params.userId)
+  app.emitter.emit('crawl', req.params.userId, req.query.nbDays)
   return res.redirect(`/done/${encrypt({ value: 1 })}`)
 })
 
 app.get('/reset/:userId', (req, res) => {
-  app.emitter.emit('reset', req.params.userId)
+  app.emitter.emit('reset', req.params.userId, req.query.nbDays)
   return res.redirect(`/done/${encrypt({ value: 1 })}`)
 })
 
