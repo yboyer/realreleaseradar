@@ -21,15 +21,25 @@ exports.refresh = async _id =>
         responseType: 'json',
       }
 
-      const res = await got.post(authOptions).catch(reject)
-      if (!res.body || !res.body.access_token) {
-        reject(new Error(`No body (${res.body}) <${res.statusCode}>`))
+      try {
+        const res = await got.post(authOptions)
+        if (!res.body || !res.body.access_token) {
+          reject(new Error(`No body (${res.body}) <${res.statusCode}>`))
+        }
+        // eslint-disable-next-line camelcase
+        const { access_token } = res.body
+
+        usersDb.update(
+          { _id },
+          { $set: { access_token: res.body.access_token } },
+        )
+
+        resolve(access_token)
+      } catch (e) {
+        if (e.response) {
+          return reject(e.response.body)
+        }
+        reject(e)
       }
-      // eslint-disable-next-line camelcase
-      const { access_token } = res.body
-
-      usersDb.update({ _id }, { $set: { access_token: res.body.access_token } })
-
-      resolve(access_token)
     })
   })
