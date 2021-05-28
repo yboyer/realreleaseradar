@@ -1,3 +1,4 @@
+require('dotenv').config()
 const got = require('got')
 const Datastore = require('@yetzt/nedb')
 const { CronJob } = require('cron')
@@ -255,6 +256,7 @@ class SpotifyCrawler {
       const tracks = [].concat(
         ...body.albums.map(a => a.tracks.items.map(i => i.uri)),
       )
+      console.log(body.albums.map(a => a.tracks.items))
       const newDocs = await DB.insert(
         this.tracksDb,
         tracks.filter(doNotIncludes).map(_id => ({ _id })),

@@ -1,3 +1,4 @@
 node_modules/
 users/*
 !users/db.js
+.env
