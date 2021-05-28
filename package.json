@@ -4,23 +4,21 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index"
   },
   "keywords": [],
   "author": {
     "name": "Yoann Boyer",
-    "email": "code@yoannboyer.com",
     "url": "https://yoannboyer.com"
   },
   "license": "MIT",
   "dependencies": {
+    "@yetzt/nedb": "^1.8.0",
     "cookie-parser": "^1.4.3",
     "cron": "^1.8.2",
     "express": "^4.16.4",
     "got": "^11.8.2",
     "morgan": "^1.9.1",
-    "nedb": "^1.8.0",
     "shortid": "^2.2.14"
   },
   "devDependencies": {
