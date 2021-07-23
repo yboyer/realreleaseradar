@@ -105,9 +105,9 @@ class SpotifyCrawler {
       const method = this.request[k]
       this.request[k] = (...args) =>
         method(...args).catch((err) => {
-          this.log(err.response.statusCode, err.response.body)
+          this.log(err.response?.statusCode, err.response?.body)
 
-          switch (err.response.statusCode) {
+          switch (err.response?.statusCode) {
             case 400:
             case 429:
             case 500:
