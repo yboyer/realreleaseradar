@@ -1,10 +1,9 @@
-require('dotenv').config()
 const got = require('got')
 const Datastore = require('@yetzt/nedb')
 const { CronJob } = require('cron')
+const config = require('./config')
 const usersDb = require('./users/db')
 const auth = require('./auth')
-const config = require('./config')
 
 const { refresh } = require('./tools')
 
@@ -276,7 +275,7 @@ class SpotifyCrawler {
       body: { items: playlists },
     } = await this.request.get(`users/${this.username}/playlists`)
 
-    const playlist = playlists.find((p) => p.name === config.playlist_name)
+    const playlist = playlists.find((p) => p.name === config.playlistName)
     if (playlist) {
       return playlist.id
     }
@@ -285,8 +284,8 @@ class SpotifyCrawler {
       body: { id: playlistId },
     } = await this.request.post(`users/${this.username}/playlists`, {
       json: {
-        name: config.playlist_name,
-        description: config.playlist_description,
+        name: config.playlistName,
+        description: config.playlistDescription,
       },
     })
     return playlistId
@@ -321,6 +320,16 @@ class SpotifyCrawler {
         Promise.resolve()
       )
       .then(() => {})
+  }
+
+  async setError(playlistId, message) {
+    const url = `users/${this.username}/playlists/${playlistId}`
+
+    await this.request.put(url, {
+      json: {
+        description: message,
+      },
+    })
   }
 }
 
@@ -358,6 +367,21 @@ const crawl = async (user, nbDays) => {
     await crawler.addTracks(playlist, tracks)
   } catch (err) {
     crawler.error(err)
+
+    let message = 'An unexpected error occurred during data retrieval.'
+    if (err.error === 'invalid_grant') {
+      message += ` ${err.error_description}.`
+    } else if (config.discussion) {
+      message += ' Ask for support at spotify.yoannboyer.com/ask'
+    }
+
+    try {
+      const playlist = await crawler.getPlaylistId()
+      await crawler.addTracks(playlist, [])
+      await crawler.setError(playlist, message)
+    } catch (err) {
+      crawler.error(err)
+    }
   } finally {
     console.timeEnd('Process')
     await crawler.toggleStarted()

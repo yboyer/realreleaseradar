@@ -24,10 +24,10 @@ const encrypt = ({ key, value }) =>
 const codes = {
   [encrypt({
     value: 1,
-  })]: `Done. Now just wait a few minutes for the playlist to fill. (~5min). Each friday the content of the playlist "${config.playlist_name}" will be updated with the new releases.`,
+  })]: `Done. Now just wait a few minutes for the playlist to fill. (~5min). Each friday the content of the playlist "${config.playlistName}" will be updated with the new releases.`,
   [encrypt({
     value: 2,
-  })]: `Done. Each friday the content of the playlist "${config.playlist_name}" will be updated with the new releases.`,
+  })]: `Done. Each friday the content of the playlist "${config.playlistName}" will be updated with the new releases.`,
   [encrypt({ value: 3 })]: 'Error. Please retry.',
   [encrypt({ value: 4 })]: 'User not logged. Please signin.',
   [encrypt({ value: 5 })]: 'User deleted.',
@@ -65,12 +65,12 @@ const getTokens = async (code) => {
     url: 'https://accounts.spotify.com/api/token',
     form: {
       code,
-      redirect_uri: config.redirect_uri,
+      redirect_uri: config.redirectUri,
       grant_type: 'authorization_code',
     },
     headers: {
       Authorization: `Basic ${Buffer.from(
-        `${config.client_id}:${config.client_secret}`
+        `${config.clientId}:${config.clientSecret}`
       ).toString('base64')}`,
     },
     responseType: 'json',
@@ -176,9 +176,9 @@ app.get(
     res.redirect(
       `https://accounts.spotify.com/authorize?${querystring.stringify({
         response_type: 'code',
-        client_id: config.client_id,
+        client_id: config.clientId,
         scope,
-        redirect_uri: config.redirect_uri,
+        redirect_uri: config.redirectUri,
         state,
       })}`
     )
@@ -233,6 +233,13 @@ app.get('/crawl/:userId', (req, res) => {
 app.get('/reset/:userId', (req, res) => {
   app.emitter.emit('reset', req.params.userId, req.query.nbDays)
   return res.redirect(`/done/${encrypt({ value: 1 })}`)
+})
+
+app.get('/ask', (req, res) => {
+  if (!config.discussion) {
+    res.sendStatus(404)
+  }
+  res.redirect(config.discussion)
 })
 
 module.exports = app

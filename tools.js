@@ -11,7 +11,7 @@ exports.refresh = async (_id) =>
         url: 'https://accounts.spotify.com/api/token',
         headers: {
           Authorization: `Basic ${Buffer.from(
-            `${config.client_id}:${config.client_secret}`
+            `${config.clientId}:${config.clientSecret}`
           ).toString('base64')}`,
         },
         form: {
