@@ -307,19 +307,13 @@ class SpotifyCrawler {
         uris: chunks.shift() || [],
       },
     })
-    return chunks
-      .reduce(
-        (chain, m) =>
-          chain.then(() =>
-            this.request.post(url, {
-              json: {
-                uris: m,
-              },
-            })
-          ),
-        Promise.resolve()
-      )
-      .then(() => {})
+    for await (const uris of chunks) {
+      await this.request.post(url, {
+        json: {
+          uris,
+        },
+      })
+    }
   }
 
   async setError(playlistId, message) {
@@ -353,18 +347,15 @@ const crawl = async (user, nbDays) => {
 
     const artists = await crawler.getArtistIds()
 
-    const tracks = await artists.reduce(
-      (chain, artist) =>
-        chain.then(async (arr = []) => {
-          const albumIds = await crawler.getAlbumIds(artist)
-          const trackIds = await crawler.getTrackURIs(albumIds)
-          return arr.concat(trackIds)
-        }),
-      Promise.resolve([])
-    )
+    const tracks = new Set()
+    for await (const artist of artists) {
+      const albumIds = await crawler.getAlbumIds(artist)
+      const trackIds = await crawler.getTrackURIs(albumIds)
+      trackIds.forEach(tracks.add, tracks)
+    }
 
     const playlist = await crawler.getPlaylistId()
-    await crawler.addTracks(playlist, tracks)
+    await crawler.addTracks(playlist, [...tracks])
   } catch (err) {
     crawler.error(err)
 
@@ -395,10 +386,9 @@ const start = async () => {
 
   console.log('Users:', users.join(', '))
 
-  return users.reduce(
-    (chain, user) => chain.then(() => crawl(user)),
-    Promise.resolve()
-  )
+  for await (const user of users) {
+    await crawl(user)
+  }
 }
 
 if (process.env.NODE_ENV === 'production') {
