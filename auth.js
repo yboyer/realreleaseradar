@@ -2,7 +2,6 @@ const crypto = require('crypto')
 const express = require('express')
 const morgan = require('morgan')
 const got = require('got')
-const querystring = require('querystring')
 const cookieParser = require('cookie-parser')
 const shortid = require('shortid')
 const EventEmitter = require('events')
@@ -172,16 +171,19 @@ app.get(
       })
     )
 
-    const scope = 'user-follow-read playlist-modify-public'
-    res.redirect(
-      `https://accounts.spotify.com/authorize?${querystring.stringify({
-        response_type: 'code',
-        client_id: config.clientId,
-        scope,
-        redirect_uri: config.redirectUri,
-        state,
-      })}`
-    )
+    const scope = [
+      'user-follow-read',
+      'playlist-modify-public',
+      'ugc-image-upload',
+    ].join(' ')
+    const params = new URLSearchParams([
+      ['response_type', 'code'],
+      ['client_id', config.clientId],
+      ['scope', scope],
+      ['redirect_uri', config.redirectUri],
+      ['state', state],
+    ])
+    res.redirect(`https://accounts.spotify.com/authorize?${params.toString()}`)
   }
 )
 

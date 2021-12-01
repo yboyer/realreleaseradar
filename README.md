@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://hub.docker.com/r/yboyer/rrr/">
-    <img height="350" src="https://raw.githubusercontent.com/yboyer/realreleaseradar/master/.github/cover.jpg">
+    <img height="350" src="https://raw.githubusercontent.com/yboyer/realreleaseradar/master/.github/large.jpg">
   </a>
   <p align="center"><i>Real Release Radar</i> Spotify's playlist</p>
 </p>

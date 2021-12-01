@@ -4,6 +4,8 @@ const { CronJob } = require('cron')
 const config = require('./config')
 const usersDb = require('./users/db')
 const auth = require('./auth')
+const path = require('path')
+const fs = require('fs')
 
 const { refresh } = require('./tools')
 
@@ -288,6 +290,20 @@ class SpotifyCrawler {
         description: config.playlistDescription,
       },
     })
+
+    // Set image
+    try {
+      const filepath = path.join(__dirname, '.github', 'large.jpg')
+      const buffer = fs.readFileSync(filepath)
+      await this.request.put(
+        `users/${this.username}/playlists/${playlistId}/images`,
+        {
+          body: buffer.toString('base64'),
+        }
+      )
+    } catch (e) {
+      console.error(e)
+    }
     return playlistId
   }
 
@@ -408,3 +424,12 @@ auth.emitter.on('reset', async (id, nbDays) => {
 })
 
 auth.listen(3000, () => console.log('Listening...'))
+
+// async function test() {
+//   const crawler = new SpotifyCrawler('bhyw180', 7)
+//   await crawler.init()
+//   const playlist = await crawler.getPlaylistId()
+//   console.log(playlist)
+// }
+
+// test()
