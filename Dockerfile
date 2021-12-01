@@ -5,8 +5,7 @@ WORKDIR /src
 ENV NODE_ENV=production
 
 # Packages
-COPY package.json .
-COPY package-lock.json .
+COPY package.json yarn.lock ./
 RUN yarn ci
 
 # Files
