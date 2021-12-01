@@ -15,4 +15,4 @@ EXPOSE 3000
 
 VOLUME ["/src/users/dbs"]
 
-CMD node src/index.js
+CMD node index.js
