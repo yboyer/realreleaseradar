@@ -32,8 +32,8 @@ docker run --name releaseradar \
  - `/logout`: Unsubscribes from the service
  - `/toggle_appears_on`: Toggles the option to include the appearance of artists on other albums _(enabled by default)_
 
-<p align="left">
-  <img height="250" src="https://raw.githubusercontent.com/yboyer/realreleaseradar/master/.github/screen.png">
+<p align="center">
+  <img width="800" src="https://raw.githubusercontent.com/yboyer/realreleaseradar/master/.github/screen.png">
 </p>
 
 ## License
