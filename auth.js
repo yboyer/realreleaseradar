@@ -3,7 +3,7 @@ const express = require('express')
 const morgan = require('morgan')
 const got = require('got')
 const cookieParser = require('cookie-parser')
-const shortid = require('shortid')
+const { nanoid } = require('nanoid')
 const EventEmitter = require('events')
 
 const usersDb = require('./users/db')
@@ -11,7 +11,7 @@ const config = require('./config')
 
 const stateKey = 'spotify_auth_state'
 const actionKey = 'rrr_action'
-const salt = shortid()
+const salt = nanoid()
 
 const encrypt = ({ key, value }) =>
   crypto
