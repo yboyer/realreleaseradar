@@ -22,7 +22,7 @@
     "express": "^4.17.3",
     "got": "^11.8.3",
     "morgan": "^1.9.1",
-    "shortid": "^2.2.14"
+    "shortid": "^2.2.16"
   },
   "devDependencies": {
     "eslint": "8.9.0",
