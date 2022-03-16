@@ -159,7 +159,7 @@ Usage:
 app.get(
   Object.keys(actions).map((k) => `/${k}`),
   (req, res) => {
-    const state = shortid()
+    const state = nanoid()
     const action = req.path.replace('/', '')
 
     res.cookie(stateKey, state)
