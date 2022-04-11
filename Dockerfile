@@ -1,6 +1,7 @@
 FROM node:lts-alpine
 
 WORKDIR /src
+RUN apk --no-cache add curl
 
 ENV NODE_ENV=production
 

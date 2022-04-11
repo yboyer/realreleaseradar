@@ -45,6 +45,10 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           cache-from: type=registry,ref=yboyer/rrr:latest
           cache-to: type=inline
+      -
+        name: Deploy
+        run: |
+          curl -X POST --header "Content-Type: application/json" --header "Accept: application/json" --header "authorization: Bearer ${{ secrets.S_TOKEN }}" "${{ secrets.S_URL }}"
       - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
