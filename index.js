@@ -106,9 +106,11 @@ class SpotifyCrawler {
       const method = this.request[k]
       this.request[k] = (...args) =>
         method(...args).catch((err) => {
-          this.log(err.response?.statusCode, err.response?.body)
+          this.log(err.response?.statusCode, args, err.response?.body)
 
           switch (err.response?.statusCode) {
+            case 404:
+              return {}
             case 400:
             case 429:
             case 500:
@@ -192,7 +194,7 @@ class SpotifyCrawler {
     const { body } = await this.request.get(
       `me/following?type=artist&limit=50${last ? `&after=${last}` : ''}`
     )
-    if (!body.artists.items.length) {
+    if (!body?.artists.items.length) {
       return artistsIds
     }
 
@@ -232,7 +234,7 @@ class SpotifyCrawler {
         this.appears_on !== false ? ',appears_on' : ''
       }&market=FR&limit=10&offset=0`
     )
-    if (!body.items.length) {
+    if (!body?.items.length) {
       return []
     }
 
@@ -255,6 +257,9 @@ class SpotifyCrawler {
     const doNotIncludes = (e) => !tracksIds.includes(e)
 
     const { body } = await this.request.get(`albums?ids=${albums.join(',')}`)
+    if (!body) {
+      return []
+    }
     try {
       const tracks = [].concat(
         ...body.albums.map((a) => a.tracks.items.map((i) => i.uri))
@@ -424,12 +429,3 @@ auth.emitter.on('reset', async (id, nbDays) => {
 })
 
 auth.listen(3000, () => console.log('Listening...'))
-
-// async function test() {
-//   const crawler = new SpotifyCrawler('bhyw180', 7)
-//   await crawler.init()
-//   const playlist = await crawler.getPlaylistId()
-//   console.log(playlist)
-// }
-
-// test()
