@@ -14,5 +14,5 @@ module.exports = {
     return name
   },
   playlistDescription:
-    'Week releases every friday. // https://spotify.yoannboyer.com/',
+    'ALL new releases of your followed artists every Friday. Create your own: https://spotify.yoannboyer.com',
 }
