@@ -377,7 +377,7 @@ const crawl = async (user, nbDays) => {
     const artists = await crawler.getArtistIds()
 
     const tracks = new Set()
-    for await (const artist of artists.slice(0, 1)) {
+    for await (const artist of artists) {
       const albumIds = await crawler.getAlbumIds(artist)
       const trackIds = await crawler.getTrackURIs(albumIds)
       trackIds.forEach(tracks.add, tracks)
@@ -437,5 +437,3 @@ auth.emitter.on('reset', async (id, nbDays) => {
 })
 
 auth.listen(3000, () => console.log('Listening...'))
-
-crawl('bhyw180')
