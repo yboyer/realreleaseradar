@@ -17,7 +17,7 @@
     "@yetzt/nedb": "^1.8.0",
     "cookie-parser": "^1.4.6",
     "cron": "^2.0.0",
-    "dotenv": "^16.0.0",
+    "dotenv": "^16.0.1",
     "express": "^4.18.1",
     "got": "^11.8.3",
     "morgan": "^1.10.0",
