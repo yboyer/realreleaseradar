@@ -2,5 +2,22 @@
   "extends": [
     "config:base"
   ],
-  "rangeStrategy": "bump"
+  "rangeStrategy": "bump",
+  "packageRules": [
+    {
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "pin",
+        "digest"
+      ],
+      "automerge": true
+    },
+    {
+      "matchDepTypes": [
+        "devDependencies"
+      ],
+      "automerge": true
+    }
+  ]
 }
