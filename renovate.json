@@ -3,6 +3,7 @@
     "config:base"
   ],
   "rangeStrategy": "bump",
+  "ignoreTests": true,
   "packageRules": [
     {
       "matchUpdateTypes": [
