@@ -6,7 +6,7 @@ module.exports = {
   ],
   plugins: ['import', 'prettier'],
   parserOptions: {
-    ecmaVersion: 2020,
+    ecmaVersion: 13,
   },
   env: {
     node: true,
