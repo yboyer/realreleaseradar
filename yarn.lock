@@ -340,12 +340,12 @@ cookie@0.5.0:
   resolved "https://registry.yarnpkg.com/cookie/-/cookie-0.5.0.tgz#d1f5d71adec6558c58f389987c366aa47e994f8b"
   integrity sha512-YZ3GUyn/o8gfKJlnlX7g7xq4gyO6OSuhGPKaaGssGB2qgDUS0gPgtTvoyZLTt9Ab6dC4hfc9dV5arkvc/OCmrw==
 
-cron@^2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/cron/-/cron-2.1.0.tgz#f69fe77f1164d0bccbc24300938bbb3bea6ed95e"
-  integrity sha512-Hq7u3P8y7UWYvsZbSKHHJDVG0VO9O7tp2qljxzTScelcTODBfCme8AIhnZsFwmQ9NchZ3hr2uNr+s3DSms7q6w==
+cron@^2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/cron/-/cron-2.2.0.tgz#605ae5048e9715a22db12e9fe2563a92740b9fed"
+  integrity sha512-GPiI3OgMv83XRtEUc2gUdaLvJhO3XbLN288layOBkDTupg0RK5IECNGpkykIMHg+muVR2bxt29b0xvCAcBrjYQ==
   dependencies:
-    luxon "^1.23.x"
+    luxon "^3.2.1"
 
 cross-spawn@^7.0.2:
   version "7.0.3"
@@ -1158,10 +1158,10 @@ lowercase-keys@^2.0.0:
   resolved "https://registry.yarnpkg.com/lowercase-keys/-/lowercase-keys-2.0.0.tgz#2603e78b7b4b0006cbca2fbcc8a3202558ac9479"
   integrity sha512-tqNXrS78oMOE73NMxK4EMLQsQowWf8jKooH9g7xPavRT706R6bkQJ6DY2Te7QukaZsulxa30wQ7bk0pm4XiHmA==
 
-luxon@^1.23.x:
-  version "1.28.0"
-  resolved "https://registry.yarnpkg.com/luxon/-/luxon-1.28.0.tgz#e7f96daad3938c06a62de0fb027115d251251fbf"
-  integrity sha512-TfTiyvZhwBYM/7QdAVDh+7dBTBA29v4ik0Ce9zda3Mnf8on1S5KJI8P2jKFZ8+5C0jhmr0KwJEO/Wdpm0VeWJQ==
+luxon@^3.2.1:
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/luxon/-/luxon-3.2.1.tgz#14f1af209188ad61212578ea7e3d518d18cee45f"
+  integrity sha512-QrwPArQCNLAKGO/C+ZIilgIuDnEnKx5QYODdDtbFaxzsbZcc/a7WFq7MhsVYgRlwawLtvOUESTlfJ+hc/USqPg==
 
 media-typer@0.3.0:
   version "0.3.0"
