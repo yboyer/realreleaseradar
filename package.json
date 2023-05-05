@@ -21,7 +21,7 @@
     "express": "^4.18.2",
     "got": "^11.8.6",
     "morgan": "^1.10.0",
-    "nanoid": "3"
+    "nanoid": "4"
   },
   "devDependencies": {
     "eslint": "8.39.0",
