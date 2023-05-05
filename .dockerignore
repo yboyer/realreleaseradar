@@ -1,3 +1,5 @@
-node_modules/
-users/dbs/
-.git/
+node_modules
+.github
+Dockerfile
+.git
+users/dbs
