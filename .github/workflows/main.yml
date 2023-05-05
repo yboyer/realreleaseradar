@@ -2,20 +2,17 @@ name: ci
 
 on:
   push:
-    tags:
-      - 'v*.*.*'
+    branches:
+      - 'master'
 
 jobs:
-  docker:
+  build_and_deploy:
     runs-on: ubuntu-latest
+    if: "startsWith(github.event.head_commit.message, ':bookmark: v')"
     steps:
-      -
-        name: Checkout
-        uses: actions/checkout@v3
-      -
-        name: Docker meta
+      - uses: actions/checkout@v3
+      - uses: docker/metadata-action@v4
         id: meta
-        uses: docker/metadata-action@v4
         with:
           images: yboyer/rrr
           tags: |
@@ -24,31 +21,30 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
             type=raw,value=latest
-      -
-        name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-      -
-        name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-      -
-        name: Login to DockerHub
-        uses: docker/login-action@v2
+      - uses: docker/setup-qemu-action@v2
+      - uses: docker/setup-buildx-action@v2
+      - uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      -
-        name: Build and push
+      - name: 🐳 Build
         uses: docker/build-push-action@v3
         with:
           context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
-          cache-from: type=registry,ref=yboyer/rrr:latest
-          cache-to: type=inline
-      -
-        name: Deploy
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: 🎬 Deploy
         run: |
           curl -X POST --header "Content-Type: application/json" --header "Accept: application/json" --header "authorization: Bearer ${{ secrets.S_TOKEN }}" "${{ secrets.S_URL }}"
-      - name: Release
+      - name: ⚙️ Generate release infos
+        id: release
+        run: |
+          echo "release_tag=$(echo ${{ github.event.head_commit.message }} | grep -o 'v\(.*\)' | cut -f2 -d 'v')" >> $GITHUB_OUTPUT
+          echo "release_name=$(echo ${{ github.event.head_commit.message }} | grep -o 'v\(.*\)')" >> $GITHUB_OUTPUT
+      - name: 🔖 Release
         uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          tag_name: ${{ steps.release.outputs.release_tag }}
+          name: ${{ steps.release.outputs.release_name }}
