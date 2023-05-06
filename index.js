@@ -35,15 +35,19 @@ const dbs = {
 }
 
 const DB = {
-  async find(db, query = {}) {
+  async findAll(db, query = {}) {
     return new Promise((resolve, reject) => {
       db.find(query, (err, docs) => {
         if (err) {
           return reject(err)
         }
-        return resolve(docs.filter((i) => i.subscribed).map((i) => i._id))
+        return resolve(docs)
       })
     })
+  },
+  async findIds(db, query = {}) {
+    const docs = await this.findAll(db, query)
+    return docs.map((i) => i._id)
   },
   async findOne(db, query = {}) {
     return new Promise((resolve, reject) => {
@@ -189,16 +193,16 @@ class SpotifyCrawler {
     if (!last) {
       await DB.remove(this.artistsDb, {}, { multi: true })
     }
-    const artistsIds = await DB.find(this.artistsDb)
+    const artistIds = await DB.findIds(this.artistsDb)
 
     const { body } = await this.request.get(
       `me/following?type=artist&limit=50${last ? `&after=${last}` : ''}`
     )
     if (!body?.artists.items.length) {
-      return artistsIds
+      return artistIds
     }
 
-    const artists = body.artists.items
+    const newArtists = body.artists.items
       .map((i) => ({
         _id: i.id,
         name: i.name,
@@ -207,14 +211,14 @@ class SpotifyCrawler {
         // remove duplicates
         (artist, i, self) =>
           i === self.findIndex((t) => t._id === artist._id) &&
-          !artistsIds.includes(artist._id)
+          !artistIds.includes(artist._id)
       )
 
-    await DB.insert(this.artistsDb, artists)
+    await DB.insert(this.artistsDb, newArtists)
 
     const lastArtistId = body.artists.cursors.after
     if (!lastArtistId) {
-      const ids = await DB.find(this.artistsDb)
+      const ids = await DB.findIds(this.artistsDb)
       this.log('Total received', body.artists.total, `(stored: ${ids.length})`)
       return ids
     }
@@ -224,8 +228,8 @@ class SpotifyCrawler {
 
   async getAlbumIds(artistId) {
     this.log(`Getting albums for ${artistId}`)
-    const albumsIds = await DB.find(this.albumsDb)
-    const doNotIncludes = (e) => !albumsIds.includes(e.id)
+    const albumIds = await DB.findIds(this.albumsDb)
+    const doNotIncludes = (e) => !albumIds.includes(e.id)
     const isReallyNew = (e) =>
       new Date(e.release_date).getTime() >= this.fromDate
 
@@ -253,8 +257,8 @@ class SpotifyCrawler {
     }
     this.log(`Getting tracks for ${albums}`)
 
-    const tracksIds = await DB.find(this.tracksDb)
-    const doNotIncludes = (e) => !tracksIds.includes(e)
+    const trackIds = await DB.findIds(this.tracksDb)
+    const doNotIncludes = (e) => !trackIds.includes(e)
 
     const { body } = await this.request.get(`albums?ids=${albums.join(',')}`)
     if (!body) {
@@ -411,12 +415,13 @@ const crawl = async (user, nbDays) => {
 }
 
 const start = async () => {
-  const users = await DB.find(usersDb)
+  const users = await DB.findAll(usersDb)
+  const userIds = users.filter((i) => i.subscribed).map((i) => i._id)
 
-  console.log('Users:', users.join(', '))
+  console.log('Users:', userIds.join(', '))
 
-  for await (const user of users) {
-    await crawl(user)
+  for await (const userId of userIds) {
+    await crawl(userId)
   }
 }
 
