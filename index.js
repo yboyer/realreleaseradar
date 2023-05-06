@@ -41,7 +41,7 @@ const DB = {
         if (err) {
           return reject(err)
         }
-        return resolve(docs.map((i) => i._id))
+        return resolve(docs.filter((i) => i.subscribed).map((i) => i._id))
       })
     })
   },

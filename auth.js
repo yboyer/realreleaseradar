@@ -95,22 +95,58 @@ app.use(
 )
 app.emitter = new EventEmitter()
 
+async function setCookieAndSend(res, id) {
+  const dbUser = await findUser(id).catch(() => {})
+  res.cookie(
+    'user',
+    dbUser
+      ? Buffer.from(
+          JSON.stringify({
+            name: dbUser.name,
+            image: dbUser.image,
+            subscribed: dbUser.subscribed,
+            includeFeaturing: dbUser.appears_on,
+          })
+        ).toString('base64')
+      : ''
+  )
+  res.redirect('/')
+}
+
 const actions = {
+  async connect({ user, access_token, refresh_token, res }) {
+    usersDb.update(
+      { _id: user.id },
+      {
+        $set: {
+          _id: user.id,
+          access_token,
+          refresh_token,
+          image: user.images[0]?.url,
+          name: user.display_name,
+        },
+      },
+      { upsert: true },
+      () => {
+        setCookieAndSend(res, user.id)
+      }
+    )
+  },
+
   // eslint-disable-next-line camelcase
   async subscribe({ user, access_token, refresh_token, res }) {
     const dbUser = await findUser(user.id).catch(() => {})
 
     usersDb.update(
       { _id: user.id },
-      { _id: user.id, access_token, refresh_token },
+      { $set: { _id: user.id, access_token, refresh_token, subscribed: true } },
       { upsert: true },
       () => {
-        if (dbUser) {
-          return res.redirect(`/done/${encrypt({ value: 2 })}`)
+        if (!dbUser.subscribed) {
+          app.emitter.emit('crawl', user.id)
         }
 
-        app.emitter.emit('crawl', user.id)
-        return res.redirect(`/done/${encrypt({ value: 1 })}`)
+        setCookieAndSend(res, user.id)
       }
     )
   },
@@ -121,40 +157,27 @@ const actions = {
         app.emitter.emit('delete', user.id)
       }
 
-      res.redirect(`/done/${encrypt({ value: 5 })}`)
+      setCookieAndSend(res, user.id)
     })
   },
 
   // eslint-disable-next-line consistent-return
-  async toggle_appears_on({ user, res }) {
+  async toggleFeaturing({ user, res }) {
     const dbUser = await findUser(user.id).catch(() => {})
 
     if (!dbUser) {
-      return res.redirect(`/done/${encrypt({ value: 4 })}`)
+      return setCookieAndSend(res, user.id)
     }
 
     const enabled = !dbUser.appears_on
 
     usersDb.update({ _id: user.id }, { $set: { appears_on: enabled } }, () => {
       app.emitter.emit('reset', user.id, 7)
-      if (enabled) {
-        return res.redirect(`/done/${encrypt({ value: 6 })}`)
-      }
-      return res.redirect(`/done/${encrypt({ value: 7 })}`)
+
+      setCookieAndSend(res, user.id)
     })
   },
 }
-
-app.get('/', (req, res) => {
-  res.end(`<html><body><pre>
-Usage:
-- <a href="/subscribe">/subscribe</a>: Subscribes to the Real Release Radar playlist
-- <a href="/unsubscribe">/unsubscribe</a>: Unsubscribes from the service
-- <a href="/toggle_appears_on">/toggle_appears_on</a>: Toggles the option to include the appearance of artists on other albums _(enabled by default)_
-
-<a href="https://github.com/yboyer/realreleaseradar">https://github.com/yboyer/realreleaseradar</a>
-</pre></body></html>`)
-})
 
 app.get(
   Object.keys(actions).map((k) => `/${k}`),
@@ -242,6 +265,12 @@ app.get('/ask', (req, res) => {
     res.sendStatus(404)
   }
   res.redirect(config.discussion)
+})
+
+app.use(express.static('static'))
+
+app.get('*', (_req, res) => {
+  res.redirect('/')
 })
 
 module.exports = app
