@@ -112,7 +112,12 @@ async function setCookieAndSend(res, id) {
             includeFeaturing: dbUser.appears_on,
           })
         ).toString('base64')
-      : ''
+      : '',
+    {
+      sameSite: true,
+      maxAge: 10_000,
+      secure: config.isProduction,
+    }
   )
   res.redirect('/')
 }

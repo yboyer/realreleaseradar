@@ -2,6 +2,7 @@ require('dotenv').config()
 require('dotenv').config()
 
 module.exports = {
+  isProduction: process.env.NODE_ENV === 'production',
   clientId: process.env.CLIENT_ID,
   clientSecret: process.env.CLIENT_SECRET,
   redirectUri: process.env.REDIRECT_URI,
