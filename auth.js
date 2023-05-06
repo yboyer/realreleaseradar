@@ -93,6 +93,10 @@ app.use(
     ':date[iso] :remote-addr :method :url HTTP/:http-version :status - :response-time ms'
   )
 )
+app.use((req, res, next) => {
+  res.set('Cache-Control', 'no-store')
+  next()
+})
 app.emitter = new EventEmitter()
 
 async function setCookieAndSend(res, id) {

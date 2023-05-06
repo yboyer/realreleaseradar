@@ -6,8 +6,6 @@ const props = defineProps({
 	disabled: Boolean,
 })
 
-console.log(props)
-
 function toggle(a: Event) {
 	const value = (<HTMLInputElement>a.target).checked
 	props.onchange?.(value)
