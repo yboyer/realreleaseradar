@@ -38,16 +38,6 @@ const codes = {
   })]: `Include artists appearing on other albums: disabled. Retrieving tracks. Please wait.`,
 }
 
-const findUser = (id) =>
-  new Promise((resolve, reject) => {
-    usersDb.findOne({ _id: id }, (err, doc) => {
-      if (err || !doc) {
-        return reject(err)
-      }
-      return resolve(doc)
-    })
-  })
-
 const querySpotifyUser = async (accessToken) => {
   const options = {
     url: 'https://api.spotify.com/v1/me',
@@ -99,8 +89,8 @@ app.use((req, res, next) => {
 })
 app.emitter = new EventEmitter()
 
-async function setCookieAndSend(res, id) {
-  const dbUser = await findUser(id).catch(() => {})
+async function setCookieAndSend(res, userId) {
+  const dbUser = await usersDb.findOneAsync({ _id: userId }).catch(() => {})
   res.cookie(
     'user',
     dbUser
@@ -124,7 +114,7 @@ async function setCookieAndSend(res, id) {
 
 const actions = {
   async connect({ user, access_token, refresh_token, res }) {
-    usersDb.update(
+    await usersDb.updateAsync(
       { _id: user.id },
       {
         $set: {
@@ -135,44 +125,41 @@ const actions = {
           name: user.display_name,
         },
       },
-      { upsert: true },
-      () => {
-        setCookieAndSend(res, user.id)
-      }
+      { upsert: true }
     )
+    setCookieAndSend(res, user.id)
   },
 
   // eslint-disable-next-line camelcase
   async subscribe({ user, access_token, refresh_token, res }) {
-    const dbUser = await findUser(user.id).catch(() => {})
+    const dbUser = await usersDb.findOneAsync({ _id: user.id }).catch(() => {})
 
-    usersDb.update(
+    await usersDb.updateAsync(
       { _id: user.id },
       { $set: { _id: user.id, access_token, refresh_token, subscribed: true } },
-      { upsert: true },
-      () => {
-        if (!dbUser.subscribed) {
-          app.emitter.emit('crawl', user.id)
-        }
-
-        setCookieAndSend(res, user.id)
-      }
+      { upsert: true }
     )
+    if (!dbUser?.subscribed) {
+      app.emitter.emit('crawl', user.id)
+    }
+
+    setCookieAndSend(res, user.id)
   },
 
   async unsubscribe({ user, res }) {
-    usersDb.remove({ _id: user.id }, {}, (err, numRemoved) => {
-      if (!err && numRemoved === 1) {
-        app.emitter.emit('delete', user.id)
-      }
+    const result = await usersDb
+      .removeAsync({ _id: user.id }, {})
+      .catch(() => {})
+    if (result?.numRemoved === 1) {
+      app.emitter.emit('delete', user.id)
+    }
 
-      setCookieAndSend(res, user.id)
-    })
+    setCookieAndSend(res, user.id)
   },
 
   // eslint-disable-next-line consistent-return
   async toggleFeaturing({ user, res }) {
-    const dbUser = await findUser(user.id).catch(() => {})
+    const dbUser = await usersDb.findOneAsync({ _id: user.id }).catch(() => {})
 
     if (!dbUser) {
       return setCookieAndSend(res, user.id)
@@ -180,11 +167,13 @@ const actions = {
 
     const enabled = !dbUser.appears_on
 
-    usersDb.update({ _id: user.id }, { $set: { appears_on: enabled } }, () => {
-      app.emitter.emit('reset', user.id, 7)
+    await usersDb.updateAsync(
+      { _id: user.id },
+      { $set: { appears_on: enabled } }
+    )
+    app.emitter.emit('reset', user.id, 7)
 
-      setCookieAndSend(res, user.id)
-    })
+    setCookieAndSend(res, user.id)
   },
 }
 

@@ -14,7 +14,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@yetzt/nedb": "^1.8.0",
+    "@seald-io/nedb": "^4.0.2",
     "cookie-parser": "^1.4.6",
     "cron": "^2.3.0",
     "dotenv": "^16.0.3",
