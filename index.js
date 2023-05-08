@@ -1,4 +1,3 @@
-const got = require('got')
 const Datastore = require('@seald-io/nedb')
 const { CronJob } = require('cron')
 const config = require('./config')
@@ -8,6 +7,7 @@ const path = require('path')
 const fs = require('fs')
 
 const { refresh } = require('./tools')
+const API = require('./api')
 
 const dbs = {
   _: {},
@@ -39,48 +39,7 @@ const doNotIncludes = (ids) => (e) => !ids.includes(e)
 
 class SpotifyCrawler {
   constructor(username, days = 14) {
-    this.request = got.extend({
-      prefixUrl: 'https://api.spotify.com/v1/',
-      retry: 0,
-      responseType: 'json',
-      hooks: {
-        beforeRequest: [
-          (options) => {
-            // eslint-disable-next-line no-param-reassign
-            options.headers.Authorization = `Bearer ${this.token}`
-          },
-        ],
-      },
-    })
-    ;['get', 'put', 'post'].forEach((k) => {
-      const method = this.request[k]
-      this.request[k] = (...args) =>
-        method(...args).catch((err) => {
-          this.log(err.response?.statusCode, args, err.response?.body)
-
-          switch (err.response?.statusCode) {
-            case 404:
-              return {}
-            case 400:
-            case 429:
-            case 500:
-            case 501:
-            case 502:
-              return new Promise((resolve, reject) => {
-                const ms =
-                  Number(err.response.headers['retry-after']) * 1e3 + 1e3 || 3e3
-                this.log(`Waiting ${ms / 1000} second`)
-                setTimeout(
-                  () => this.request[k](...args).then(resolve, reject),
-                  ms
-                )
-              })
-            default:
-              throw err
-          }
-        })
-    })
-
+    this.request = new API()
     this.username = username
 
     const { artistsDb, albumsDb, tracksDb } = dbs.get(this.username)

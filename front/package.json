@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "dev:build": "vite build -w --outDir ../static --emptyOutDir",
-    "build": "vue-tsc && vite build",
+    "build": "vue-tsc && vite build --outDir ../static --emptyOutDir",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -5,6 +5,7 @@ type Store = {
     image: string
     id: string
     name: string
+    artists: number
     includeFeaturing: boolean
     subscribed: boolean
   },

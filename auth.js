@@ -8,6 +8,7 @@ const EventEmitter = require('events')
 
 const usersDb = require('./users/db')
 const config = require('./config')
+const API = require('./api')
 
 const stateKey = 'spotify_auth_state'
 const actionKey = 'rrr_action'
@@ -99,6 +100,7 @@ async function setCookieAndSend(res, userId) {
             name: dbUser.name,
             image: dbUser.image,
             subscribed: dbUser.subscribed,
+            artists: dbUser.artists,
             includeFeaturing: dbUser.appears_on,
           })
         ).toString('base64')
@@ -114,10 +116,14 @@ async function setCookieAndSend(res, userId) {
 
 const actions = {
   async connect({ user, access_token, refresh_token, res }) {
+    const api = new API(access_token)
+    const { body } = await api.get('me/following?type=artist&limit=1')
+
     await usersDb.updateAsync(
       { _id: user.id },
       {
         $set: {
+          artists: body.artists.total,
           _id: user.id,
           access_token,
           refresh_token,

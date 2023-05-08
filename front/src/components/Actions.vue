@@ -29,11 +29,15 @@ function unsubscribe() {
     <div>
       <img class="avatar" v-bind:src="store.user.image" />
       <h1>Hi {{ store.user.name }}!</h1>
+      <span>{{ store.user.artists }} followed artists</span>
+      <hr class="divider" />
       <div class="content">
         <CheckBox
           :disabled="!store.user.subscribed"
           :value="store.user.includeFeaturing"
-          :onchange="toggleFeaturing" label="Include featuring"
+          :onchange="toggleFeaturing"
+          label="Include featurings"
+          description="(any change will refresh the playlist)"
         />
       </div>
     </div>
@@ -78,7 +82,7 @@ function unsubscribe() {
   justify-content: space-between;
 }
 .content {
-  margin-top: 3em;
+  margin-top: 2em;
 }
 .button {
   background-color: #141414;

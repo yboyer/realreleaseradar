@@ -2,6 +2,7 @@
 const props = defineProps({
 	onchange: Function,
 	label: String,
+	description: String,
 	value: Boolean,
 	disabled: Boolean,
 })
@@ -18,7 +19,10 @@ function toggle(a: Event) {
 			<input type="checkbox" :disabled="disabled" :checked="value" id="switch" :onchange="toggle" />
 			<label class="main" for="switch"></label>
 		</div>
-		<label for="switch">{{ label }}</label>
+		<div class="labels">
+			<label for="switch">{{ label }}</label>
+			<label for="switch" class="description">{{ description }}</label>
+		</div>
 	</div>
 </template>
 
@@ -29,7 +33,7 @@ function toggle(a: Event) {
 }
 .container {
 	display: inline-block;
-	margin-right: 0.5em;
+	margin-right: 0.7em;
 }
 input[type=checkbox]{
 	height: 0;
@@ -38,11 +42,15 @@ input[type=checkbox]{
 	display: none;
 }
 
+.labels {
+	text-align: left;
+}
+
 label.main {
 	cursor: pointer;
 	text-indent: -9999px;
-	width: 38px;
-	height: 20px;
+	width: 34px;
+	height: 21px;
 	background: grey;
 	display: block;
 	border-radius: 20px;
@@ -54,10 +62,10 @@ label.main:after {
 	position: absolute;
 	top: 2px;
 	left: 2px;
-	width: 16px;
-	height: 16px;
+	width: 17px;
+	height: 17px;
 	background: #fff;
-	border-radius: 16px;
+	border-radius: 17px;
 	transition: 0.3s;
 }
 
@@ -72,5 +80,12 @@ input:checked + label.main:after {
 
 label.main:active:after {
 	width: 21px;
+}
+
+.description {
+	display: block;
+	font-size: 0.8em;
+	opacity: 0.6;
+	line-height: 0.9em;
 }
 </style>
