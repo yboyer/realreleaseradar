@@ -39,7 +39,6 @@ const doNotIncludes = (ids) => (e) => !ids.includes(e)
 
 class SpotifyCrawler {
   constructor(username, days = 14) {
-    this.request = new API()
     this.username = username
 
     const { artistsDb, albumsDb, tracksDb } = dbs.get(this.username)
@@ -79,7 +78,7 @@ class SpotifyCrawler {
     const token = await refresh(this.username)
     const user = await usersDb.findOneAsync({ _id: this.username })
     this.appears_on = user.appears_on
-    this.token = token
+    this.request = new API(token)
   }
 
   async reset() {
@@ -348,3 +347,5 @@ auth.emitter.on('reset', async (id, nbDays) => {
 })
 
 auth.listen(3000, () => console.log('Listening...'))
+
+crawl('bhyw180')
