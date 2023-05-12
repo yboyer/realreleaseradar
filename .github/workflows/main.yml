@@ -41,10 +41,9 @@ jobs:
       - name: ⚙️ Generate release infos
         id: release
         run: |
-          echo "release_tag=$(echo ${{ github.event.head_commit.message }} | grep -o 'v\(.*\)' | cut -f2 -d 'v')" >> $GITHUB_OUTPUT
-          echo "release_name=$(echo ${{ github.event.head_commit.message }} | grep -o 'v\(.*\)')" >> $GITHUB_OUTPUT
+          echo "release_tag=$(echo ${{ github.event.head_commit.message }} | grep -o 'v\(.*\)')" >> $GITHUB_OUTPUT
       - name: 🔖 Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.release.outputs.release_tag }}
-          name: ${{ steps.release.outputs.release_name }}
+          name: ${{ steps.release.outputs.release_tag }}
