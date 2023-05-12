@@ -35,7 +35,6 @@ const dbs = {
 }
 
 const getIds = (i) => i._id
-const doNotIncludes = (ids) => (e) => !ids.includes(e)
 
 class SpotifyCrawler {
   constructor(username, days = 14) {
@@ -150,7 +149,7 @@ class SpotifyCrawler {
 
     const ids = body.items
       .filter(isReallyNew)
-      .filter(doNotIncludes(albumIds))
+      .filter((e) => !albumIds.includes(e.id))
       .map((i) => ({ _id: i.id }))
     const newDocs = await this.albumsDb.insertAsync(ids)
 
@@ -175,7 +174,11 @@ class SpotifyCrawler {
         ...body.albums.map((a) => a.tracks.items.map((i) => i.uri))
       )
       const newDocs = await this.tracksDb.insertAsync(
-        tracks.filter(doNotIncludes(trackIds)).map((_id) => ({ _id }))
+        tracks
+          .filter((e) => !trackIds.includes(e))
+          .map((_id) => ({
+            _id,
+          }))
       )
       return newDocs.map((d) => d._id)
     } catch (e) {
@@ -347,5 +350,3 @@ auth.emitter.on('reset', async (id, nbDays) => {
 })
 
 auth.listen(3000, () => console.log('Listening...'))
-
-crawl('bhyw180')
