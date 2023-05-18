@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "vue": "^3.3.3",
+    "vue": "^3.3.4",
     "vue-cookies": "^1.8.3"
   },
   "devDependencies": {
