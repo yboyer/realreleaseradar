@@ -4,7 +4,7 @@ const config = require('./config')
 const usersDb = require('./users/db')
 const auth = require('./auth')
 const path = require('path')
-const fs = require('fs')
+const fs = require('fs/promises')
 
 const { refresh } = require('./tools')
 const API = require('./api')
@@ -81,11 +81,11 @@ class SpotifyCrawler {
   }
 
   async reset() {
-    Promise.all(
+    await Promise.all(
       [this.artistsDb, this.albumsDb, this.tracksDb].map((e) =>
         e.removeAsync({}, { multi: true })
       )
-    ).then(() => {})
+    )
   }
 
   async getArtistIds(last) {
@@ -93,8 +93,7 @@ class SpotifyCrawler {
     if (!last) {
       await this.artistsDb.removeAsync({}, { multi: true })
     }
-    const artists = await this.artistsDb.findAsync()
-    const artistIds = artists.map(getIds)
+    const artistIds = (await this.artistsDb.findAsync()).map(getIds)
 
     const { body } = await this.request.get(
       `me/following?type=artist&limit=50${last ? `&after=${last}` : ''}`
@@ -119,13 +118,13 @@ class SpotifyCrawler {
 
     const lastArtistId = body.artists.cursors.after
     if (!lastArtistId) {
-      const artists = await this.artistsDb.findAsync()
+      const artistIds = (await this.artistsDb.findAsync()).map(getIds)
       this.log(
         'Total received',
         body.artists.total,
-        `(stored: ${artists.length})`
+        `(stored: ${artistIds.length})`
       )
-      return artists.map(getIds)
+      return artistIds
     }
 
     return this.getArtistIds(lastArtistId)
@@ -133,8 +132,7 @@ class SpotifyCrawler {
 
   async getAlbumIds(artistId) {
     this.log(`Getting albums for ${artistId}`)
-    const albums = await this.albumsDb.findAsync()
-    const albumIds = albums.map(getIds)
+    const albumIds = (await this.albumsDb.findAsync()).map(getIds)
     const isReallyNew = (e) =>
       new Date(e.release_date).getTime() >= this.fromDate
 
@@ -162,8 +160,7 @@ class SpotifyCrawler {
     }
     this.log(`Getting tracks for ${albums}`)
 
-    const tracks = await this.tracksDb.findAsync()
-    const trackIds = tracks.map(getIds)
+    const trackIds = (await this.tracksDb.findAsync()).map(getIds)
 
     const { body } = await this.request.get(`albums?ids=${albums.join(',')}`)
     if (!body) {
@@ -219,11 +216,11 @@ class SpotifyCrawler {
     // Set image
     try {
       const filepath = path.join(__dirname, '.github', 'large.jpg')
-      const buffer = fs.readFileSync(filepath)
+      const img = await fs.readFile(filepath, { encoding: 'base64' })
       await this.request.put(
         `users/${this.username}/playlists/${playlistId}/images`,
         {
-          body: buffer.toString('base64'),
+          body: img,
         }
       )
     } catch (e) {
@@ -248,7 +245,7 @@ class SpotifyCrawler {
         uris: chunks.shift() || [],
       },
     })
-    for await (const uris of chunks) {
+    for (const uris of chunks) {
       await this.request.post(url, {
         json: {
           uris,
@@ -289,7 +286,9 @@ const crawl = async (user, nbDays) => {
     const artists = await crawler.getArtistIds()
 
     const tracks = new Set()
-    for await (const artist of artists) {
+    let i = 1
+    for (const artist of artists) {
+      crawler.log(`Artist ${i++}/${artists.length}`)
       const albumIds = await crawler.getAlbumIds(artist)
       const trackIds = await crawler.getTrackURIs(albumIds)
       trackIds.forEach(tracks.add, tracks)
@@ -323,12 +322,13 @@ const crawl = async (user, nbDays) => {
 }
 
 const start = async () => {
-  const users = await usersDb.findAsync()
-  const userIds = users.filter((i) => i.subscribed).map((i) => i._id)
+  const userIds = (await usersDb.findAsync())
+    .filter((i) => i.subscribed)
+    .map((i) => i._id)
 
   console.log('Users:', userIds.join(', '))
 
-  for await (const userId of userIds) {
+  for (const userId of userIds) {
     await crawl(userId)
   }
 }
@@ -344,7 +344,7 @@ auth.emitter.on('delete', (id) => {
   return crawler.reset()
 })
 auth.emitter.on('reset', async (id, nbDays) => {
-  const crawler = new SpotifyCrawler(id, nbDays || 7)
+  const crawler = new SpotifyCrawler(id)
   await crawler.reset()
   return crawl(id, nbDays)
 })
