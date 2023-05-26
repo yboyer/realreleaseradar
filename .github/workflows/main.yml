@@ -36,9 +36,6 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-      - name: 🎬 Deploy
-        run: |
-          curl -X POST --header "Content-Type: application/json" --header "Accept: application/json" --header "authorization: Bearer ${{ secrets.S_TOKEN }}" "${{ secrets.S_URL }}"
       - name: ⚙️ Generate release infos
         id: release
         run: |
