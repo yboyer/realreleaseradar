@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     if: "startsWith(github.event.head_commit.message, ':bookmark: v')"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: docker/metadata-action@v4
         id: meta
         with:
