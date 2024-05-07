@@ -229,6 +229,28 @@ class SpotifyCrawler {
     return playlistId
   }
 
+  async removeTracks(playlistId) {
+    this.log('Removing tracks')
+    const url = `users/${this.username}/playlists/${playlistId}/tracks`
+
+    // Get current tracks
+    const { body } = await this.request.get(
+      `${url}?fields=items(track(uri))&limit=50`
+    )
+
+    if (!body.items.length) {
+      return
+    }
+
+    await this.request.delete(url, {
+      json: {
+        tracks: body.items.map((i) => i.track),
+      },
+    })
+
+    return this.removeTracks(playlistId)
+  }
+
   async addTracks(playlistId, trackIds = []) {
     this.log('New tracks:', trackIds.length)
 
@@ -238,13 +260,12 @@ class SpotifyCrawler {
       chunks.push(trackIds.slice(i, i + chunkSize))
     }
 
+    if (!chunks.length) {
+      return
+    }
+
     const url = `users/${this.username}/playlists/${playlistId}/tracks`
 
-    await this.request.put(url, {
-      json: {
-        uris: chunks.shift() || [],
-      },
-    })
     for (const uris of chunks) {
       await this.request.post(url, {
         json: {
@@ -295,6 +316,7 @@ const crawl = async (user, nbDays) => {
     }
 
     const playlist = await crawler.getPlaylistId()
+    await crawler.removeTracks(playlist)
     await crawler.addTracks(playlist, [...tracks])
   } catch (err) {
     crawler.error(err)
@@ -308,7 +330,7 @@ const crawl = async (user, nbDays) => {
 
     try {
       const playlist = await crawler.getPlaylistId()
-      await crawler.addTracks(playlist, [])
+      await crawler.removeTracks(playlist)
       await crawler.setError(playlist, message)
     } catch (err) {
       crawler.error(err)

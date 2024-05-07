@@ -29,6 +29,7 @@ module.exports = class API {
             case 500:
             case 501:
             case 502:
+            case 504:
               return new Promise((resolve, reject) => {
                 const ms =
                   Number(err.response.headers['retry-after']) * 1e3 + 1e3 || 3e3
@@ -53,5 +54,8 @@ module.exports = class API {
   }
   get put() {
     return this.request.put
+  }
+  get delete() {
+    return this.request.delete
   }
 }
