@@ -41,7 +41,7 @@ jobs:
         run: |
           echo "release_tag=$(echo ${{ github.event.head_commit.message }} | grep -o 'v\(.*\)')" >> $GITHUB_OUTPUT
       - name: 🔖 Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.release.outputs.release_tag }}
           name: ${{ steps.release.outputs.release_tag }}
