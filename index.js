@@ -242,7 +242,9 @@ class SpotifyCrawler {
     }
 
     await this.request.delete(url, {
-      tracks: data.items.map((i) => i.track),
+      data: {
+        tracks: data.items.map((i) => i.track),
+      },
     })
 
     return this.removeTracks(playlistId)
@@ -301,7 +303,7 @@ const crawl = async (user, nbDays) => {
 
     const tracks = new Set()
     let i = 1
-    for (const artist of artists.slice(0, 5)) {
+    for (const artist of artists) {
       crawler.log(`Artist ${i++}/${artists.length}`)
       const albumIds = await crawler.getAlbumIds(artist)
       const trackIds = await crawler.getTrackURIs(albumIds)
@@ -365,4 +367,3 @@ auth.emitter.on('reset', async (id, nbDays) => {
 })
 
 auth.listen(3000, () => console.log('Listening...'))
-crawl('bhyw180', 7)

@@ -10,11 +10,8 @@ module.exports = class API {
     })
     ;['get', 'put', 'post'].forEach((k) => {
       const method = this.request[k]
-      console.log(k)
       this.request[k] = (...args) =>
         method(...args).catch((err) => {
-          console.log(err.response?.status, args, err.response?.data)
-
           switch (err.response?.status) {
             case 404:
               return {}

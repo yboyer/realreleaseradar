@@ -32,7 +32,6 @@ exports.refresh = async (_id) => {
 
     return access_token
   } catch (e) {
-    console.log(e)
     if (e.response) {
       throw new Error(
         e.response.data.error_description ||
