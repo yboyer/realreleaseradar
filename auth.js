@@ -1,9 +1,9 @@
 const crypto = require('crypto')
 const express = require('express')
 const morgan = require('morgan')
-const got = require('got')
+const axios = require('axios')
 const cookieParser = require('cookie-parser')
-const { nanoid } = require('nanoid')
+const { v4: uuidV4 } = require('uuid')
 const EventEmitter = require('events')
 
 const usersDb = require('./users/db')
@@ -12,7 +12,7 @@ const API = require('./api')
 
 const stateKey = 'spotify_auth_state'
 const actionKey = 'rrr_action'
-const salt = nanoid()
+const salt = uuidV4()
 
 const encrypt = ({ key, value }) =>
   crypto
@@ -22,21 +22,17 @@ const encrypt = ({ key, value }) =>
     .slice(0, 7)
 
 const codes = {
-  [encrypt({
-    value: 1,
-  })]: `Done. Now just wait a few minutes for the playlist to fill. (~5min). Each friday the content of the playlist "${config.playlistName}" will be updated with the new releases.`,
-  [encrypt({
-    value: 2,
-  })]: `Done. Each friday the content of the playlist "${config.playlistName}" will be updated with the new releases.`,
+  [encrypt({ value: 1 })]:
+    `Done. Now just wait a few minutes for the playlist to fill. (~5min). Each friday the content of the playlist "${config.playlistName}" will be updated with the new releases.`,
+  [encrypt({ value: 2 })]:
+    `Done. Each friday the content of the playlist "${config.playlistName}" will be updated with the new releases.`,
   [encrypt({ value: 3 })]: 'Error. Please retry.',
   [encrypt({ value: 4 })]: 'User not logged. Please signin.',
   [encrypt({ value: 5 })]: 'User deleted.',
-  [encrypt({
-    value: 6,
-  })]: `Include artists appearing on other albums: enabled. Retrieving tracks. Please wait.`,
-  [encrypt({
-    value: 7,
-  })]: `Include artists appearing on other albums: disabled. Retrieving tracks. Please wait.`,
+  [encrypt({ value: 6 })]:
+    `Include artists appearing on other albums: enabled. Retrieving tracks. Please wait.`,
+  [encrypt({ value: 7 })]:
+    `Include artists appearing on other albums: disabled. Retrieving tracks. Please wait.`,
 }
 
 const querySpotifyUser = async (accessToken) => {
@@ -46,8 +42,8 @@ const querySpotifyUser = async (accessToken) => {
     responseType: 'json',
   }
 
-  const { body } = await got.get(options)
-  return body
+  const { data } = await axios.get(options)
+  return data
 }
 
 const getTokens = async (code) => {
@@ -60,7 +56,7 @@ const getTokens = async (code) => {
     },
     headers: {
       Authorization: `Basic ${Buffer.from(
-        `${config.clientId}:${config.clientSecret}`
+        `${config.clientId}:${config.clientSecret}`,
       ).toString('base64')}`,
     },
     responseType: 'json',
@@ -68,8 +64,8 @@ const getTokens = async (code) => {
 
   const {
     // eslint-disable-next-line camelcase
-    body: { access_token, refresh_token },
-  } = await got.post(authOptions)
+    data: { access_token, refresh_token },
+  } = await axios.post(authOptions)
 
   return {
     access_token,
@@ -81,8 +77,8 @@ const app = express()
 app.use(cookieParser())
 app.use(
   morgan(
-    ':date[iso] :remote-addr :method :url HTTP/:http-version :status - :response-time ms'
-  )
+    ':date[iso] :remote-addr :method :url HTTP/:http-version :status - :response-time ms',
+  ),
 )
 app.use((req, res, next) => {
   res.set('Cache-Control', 'no-store')
@@ -102,14 +98,14 @@ async function setCookieAndSend(res, userId) {
             subscribed: dbUser.subscribed,
             artists: dbUser.artists,
             includeFeaturing: dbUser.appears_on,
-          })
+          }),
         ).toString('base64')
       : '',
     {
       sameSite: true,
       maxAge: 10_000,
       secure: config.isProduction,
-    }
+    },
   )
   res.redirect('/')
 }
@@ -131,7 +127,7 @@ const actions = {
           name: user.display_name,
         },
       },
-      { upsert: true }
+      { upsert: true },
     )
     setCookieAndSend(res, user.id)
   },
@@ -143,7 +139,7 @@ const actions = {
     await usersDb.updateAsync(
       { _id: user.id },
       { $set: { _id: user.id, access_token, refresh_token, subscribed: true } },
-      { upsert: true }
+      { upsert: true },
     )
     if (!dbUser?.subscribed) {
       app.emitter.emit('crawl', user.id)
@@ -175,7 +171,7 @@ const actions = {
 
     await usersDb.updateAsync(
       { _id: user.id },
-      { $set: { appears_on: enabled } }
+      { $set: { appears_on: enabled } },
     )
     app.emitter.emit('reset', user.id, 7)
 
@@ -186,7 +182,7 @@ const actions = {
 app.get(
   Object.keys(actions).map((k) => `/${k}`),
   (req, res) => {
-    const state = nanoid()
+    const state = uuidV4()
     const action = req.path.replace('/', '')
 
     res.cookie(stateKey, state)
@@ -195,7 +191,7 @@ app.get(
       encrypt({
         key: state,
         value: action,
-      })
+      }),
     )
 
     const scope = [
@@ -211,12 +207,12 @@ app.get(
       ['state', state],
     ])
     res.redirect(`https://accounts.spotify.com/authorize?${params.toString()}`)
-  }
+  },
 )
 
 const getAction = (state, hash) =>
   Object.keys(actions).filter(
-    (action) => encrypt({ key: state, value: action }) === hash
+    (action) => encrypt({ key: state, value: action }) === hash,
   )[0]
 
 app.get('/callback', async (req, res) => {

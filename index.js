@@ -69,7 +69,7 @@ class SpotifyCrawler {
 
     return usersDb.updateAsync(
       { _id: this.username },
-      { $set: { started: !started } }
+      { $set: { started: !started } },
     )
   }
 
@@ -83,8 +83,8 @@ class SpotifyCrawler {
   async reset() {
     await Promise.all(
       [this.artistsDb, this.albumsDb, this.tracksDb].map((e) =>
-        e.removeAsync({}, { multi: true })
-      )
+        e.removeAsync({}, { multi: true }),
+      ),
     )
   }
 
@@ -95,14 +95,14 @@ class SpotifyCrawler {
     }
     const artistIds = (await this.artistsDb.findAsync()).map(getIds)
 
-    const { body } = await this.request.get(
-      `me/following?type=artist&limit=50${last ? `&after=${last}` : ''}`
+    const { data } = await this.request.get(
+      `me/following?type=artist&limit=50${last ? `&after=${last}` : ''}`,
     )
-    if (!body?.artists.items.length) {
+    if (!data?.artists.items.length) {
       return artistIds
     }
 
-    const newArtists = body.artists.items
+    const newArtists = data.artists.items
       .map((i) => ({
         _id: i.id,
         name: i.name,
@@ -111,18 +111,18 @@ class SpotifyCrawler {
         // remove duplicates
         (artist, i, self) =>
           i === self.findIndex((t) => t._id === artist._id) &&
-          !artistIds.includes(artist._id)
+          !artistIds.includes(artist._id),
       )
 
     await this.artistsDb.insertAsync(newArtists)
 
-    const lastArtistId = body.artists.cursors.after
+    const lastArtistId = data.artists.cursors.after
     if (!lastArtistId) {
       const artistIds = (await this.artistsDb.findAsync()).map(getIds)
       this.log(
         'Total received',
-        body.artists.total,
-        `(stored: ${artistIds.length})`
+        data.artists.total,
+        `(stored: ${artistIds.length})`,
       )
       return artistIds
     }
@@ -136,16 +136,16 @@ class SpotifyCrawler {
     const isReallyNew = (e) =>
       new Date(e.release_date).getTime() >= this.fromDate
 
-    const { body } = await this.request.get(
-      `artists/${artistId}/albums?album_type=single,album${
+    const { data } = await this.request.get(
+      `artists/${artistId}/albums?include_groups=single,album${
         this.appears_on !== false ? ',appears_on' : ''
-      }&market=FR&limit=10&offset=0`
+      }&market=FR&limit=10&offset=0`,
     )
-    if (!body?.items.length) {
+    if (!data?.items.length) {
       return []
     }
 
-    const ids = body.items
+    const ids = data.items
       .filter(isReallyNew)
       .filter((e) => !albumIds.includes(e.id))
       .map((i) => ({ _id: i.id }))
@@ -162,25 +162,25 @@ class SpotifyCrawler {
 
     const trackIds = (await this.tracksDb.findAsync()).map(getIds)
 
-    const { body } = await this.request.get(`albums?ids=${albums.join(',')}`)
-    if (!body) {
+    const { data } = await this.request.get(`albums?ids=${albums.join(',')}`)
+    if (!data) {
       return []
     }
     try {
       const tracks = [].concat(
-        ...body.albums.map((a) => a.tracks.items.map((i) => i.uri))
+        ...data.albums.map((a) => a.tracks.items.map((i) => i.uri)),
       )
       const newDocs = await this.tracksDb.insertAsync(
         tracks
           .filter((e) => !trackIds.includes(e))
           .map((_id) => ({
             _id,
-          }))
+          })),
       )
       return newDocs.map((d) => d._id)
     } catch (e) {
       this.log(e)
-      this.log(body.albums.map((a) => a.tracks.items))
+      this.log(data.albums.map((a) => a.tracks.items))
       return this.getTrackURIs(albums)
     }
   }
@@ -188,7 +188,7 @@ class SpotifyCrawler {
   async getPlaylistId() {
     this.log('Getting playlist id')
     const {
-      body: { items: playlists },
+      data: { items: playlists },
     } = await this.request.get(`users/${this.username}/playlists`)
 
     const playlist = playlists.find((p) => p.name === config.playlistName)
@@ -196,21 +196,17 @@ class SpotifyCrawler {
       await this.request.put(
         `users/${this.username}/playlists/${playlist.id}`,
         {
-          json: {
-            description: config.playlistDescription,
-          },
-        }
+          description: config.playlistDescription,
+        },
       )
       return playlist.id
     }
 
     const {
-      body: { id: playlistId },
+      data: { id: playlistId },
     } = await this.request.post(`users/${this.username}/playlists`, {
-      json: {
-        name: config.playlistName,
-        description: config.playlistDescription,
-      },
+      name: config.playlistName,
+      description: config.playlistDescription,
     })
 
     // Set image
@@ -219,9 +215,12 @@ class SpotifyCrawler {
       const img = await fs.readFile(filepath, { encoding: 'base64' })
       await this.request.put(
         `users/${this.username}/playlists/${playlistId}/images`,
+        img,
         {
-          body: img,
-        }
+          headers: {
+            'Content-Type': 'image/jpeg',
+          },
+        },
       )
     } catch (e) {
       console.error(e)
@@ -234,18 +233,16 @@ class SpotifyCrawler {
     const url = `users/${this.username}/playlists/${playlistId}/tracks`
 
     // Get current tracks
-    const { body } = await this.request.get(
-      `${url}?fields=items(track(uri))&limit=50`
+    const { data } = await this.request.get(
+      `${url}?fields=items(track(uri))&limit=50`,
     )
 
-    if (!body.items.length) {
+    if (!data.items.length) {
       return
     }
 
     await this.request.delete(url, {
-      json: {
-        tracks: body.items.map((i) => i.track),
-      },
+      tracks: data.items.map((i) => i.track),
     })
 
     return this.removeTracks(playlistId)
@@ -268,9 +265,7 @@ class SpotifyCrawler {
 
     for (const uris of chunks) {
       await this.request.post(url, {
-        json: {
-          uris,
-        },
+        uris,
       })
     }
   }
@@ -279,9 +274,7 @@ class SpotifyCrawler {
     const url = `users/${this.username}/playlists/${playlistId}`
 
     await this.request.put(url, {
-      json: {
-        description: message,
-      },
+      description: message,
     })
   }
 }
@@ -292,7 +285,7 @@ const crawl = async (user, nbDays) => {
     const started = await crawler.isStarted()
     if (started) {
       crawler.log('Already started')
-      return false
+      // return false
     }
   } catch (err) {
     crawler.log(`User ${user} not found`)
@@ -308,7 +301,7 @@ const crawl = async (user, nbDays) => {
 
     const tracks = new Set()
     let i = 1
-    for (const artist of artists) {
+    for (const artist of artists.slice(0, 5)) {
       crawler.log(`Artist ${i++}/${artists.length}`)
       const albumIds = await crawler.getAlbumIds(artist)
       const trackIds = await crawler.getTrackURIs(albumIds)
@@ -372,3 +365,4 @@ auth.emitter.on('reset', async (id, nbDays) => {
 })
 
 auth.listen(3000, () => console.log('Listening...'))
+crawl('bhyw180', 7)

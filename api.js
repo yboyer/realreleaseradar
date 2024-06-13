@@ -1,27 +1,21 @@
-const got = require('got')
+const axios = require('axios')
 
 module.exports = class API {
   constructor(token) {
-    this.request = got.extend({
-      prefixUrl: 'https://api.spotify.com/v1/',
-      retry: 0,
-      responseType: 'json',
-      hooks: {
-        beforeRequest: [
-          (options) => {
-            // eslint-disable-next-line no-param-reassign
-            options.headers.Authorization = `Bearer ${token}`
-          },
-        ],
+    this.request = axios.create({
+      baseURL: 'https://api.spotify.com/v1/',
+      headers: {
+        Authorization: `Bearer ${token}`,
       },
     })
     ;['get', 'put', 'post'].forEach((k) => {
       const method = this.request[k]
+      console.log(k)
       this.request[k] = (...args) =>
         method(...args).catch((err) => {
-          console.log(err.response?.statusCode, args, err.response?.body)
+          console.log(err.response?.status, args, err.response?.data)
 
-          switch (err.response?.statusCode) {
+          switch (err.response?.status) {
             case 404:
               return {}
             case 400:
@@ -36,7 +30,7 @@ module.exports = class API {
                 console.log(`Waiting ${ms / 1000} second`)
                 setTimeout(
                   () => this.request[k](...args).then(resolve, reject),
-                  ms
+                  ms,
                 )
               })
             default:
