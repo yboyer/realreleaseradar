@@ -351,7 +351,6 @@ const start = async () => {
 }
 
 if (process.env.NODE_ENV === 'production') {
-  // eslint-disable-next-line no-new
   new CronJob('0 0 * * 5', start, null, true)
 }
 

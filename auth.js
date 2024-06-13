@@ -36,36 +36,33 @@ const codes = {
 }
 
 const querySpotifyUser = async (accessToken) => {
-  const options = {
-    url: 'https://api.spotify.com/v1/me',
-    headers: { Authorization: `Bearer ${accessToken}` },
-    responseType: 'json',
-  }
-
-  const { data } = await axios.get(options)
+  const { data } = await axios.get('https://api.spotify.com/v1/me', {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  })
   return data
 }
 
 const getTokens = async (code) => {
-  const authOptions = {
-    url: 'https://accounts.spotify.com/api/token',
-    form: {
+  const {
+    data: { access_token, refresh_token },
+  } = await axios.post(
+    'https://accounts.spotify.com/api/token',
+    {
       code,
       redirect_uri: config.redirectUri,
       grant_type: 'authorization_code',
     },
-    headers: {
-      Authorization: `Basic ${Buffer.from(
-        `${config.clientId}:${config.clientSecret}`,
-      ).toString('base64')}`,
+    {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        Authorization: `Basic ${Buffer.from(
+          `${config.clientId}:${config.clientSecret}`,
+        ).toString('base64')}`,
+      },
     },
-    responseType: 'json',
-  }
-
-  const {
-    // eslint-disable-next-line camelcase
-    data: { access_token, refresh_token },
-  } = await axios.post(authOptions)
+  )
 
   return {
     access_token,
@@ -132,7 +129,6 @@ const actions = {
     setCookieAndSend(res, user.id)
   },
 
-  // eslint-disable-next-line camelcase
   async subscribe({ user, access_token, refresh_token, res }) {
     const dbUser = await usersDb.findOneAsync({ _id: user.id }).catch(() => {})
 
@@ -159,7 +155,6 @@ const actions = {
     setCookieAndSend(res, user.id)
   },
 
-  // eslint-disable-next-line consistent-return
   async toggleFeaturing({ user, res }) {
     const dbUser = await usersDb.findOneAsync({ _id: user.id }).catch(() => {})
 
@@ -232,7 +227,6 @@ app.get('/callback', async (req, res) => {
   res.clearCookie(stateKey)
   res.clearCookie(actionKey)
 
-  // eslint-disable-next-line camelcase
   const { refresh_token, access_token } = await getTokens(code)
 
   const user = await querySpotifyUser(access_token)
