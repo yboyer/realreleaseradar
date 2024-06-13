@@ -110,13 +110,13 @@ async function setCookieAndSend(res, userId) {
 const actions = {
   async connect({ user, access_token, refresh_token, res }) {
     const api = new API(access_token)
-    const { body } = await api.get('me/following?type=artist&limit=1')
+    const { data } = await api.get('me/following?type=artist&limit=1')
 
     await usersDb.updateAsync(
       { _id: user.id },
       {
         $set: {
-          artists: body.artists.total,
+          artists: data.artists.total,
           _id: user.id,
           access_token,
           refresh_token,
