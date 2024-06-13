@@ -14,7 +14,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@seald-io/nedb": "^4.0.2",
+    "@seald-io/nedb": "^4.0.4",
     "cookie-parser": "^1.4.6",
     "cron": "^2.4.4",
     "dotenv": "^16.3.1",
