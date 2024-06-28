@@ -35,15 +35,6 @@ const codes = {
     `Include artists appearing on other albums: disabled. Retrieving tracks. Please wait.`,
 }
 
-const querySpotifyUser = async (accessToken) => {
-  const { data } = await axios.get('https://api.spotify.com/v1/me', {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  })
-  return data
-}
-
 const getTokens = async (code) => {
   const {
     data: { access_token, refresh_token },
@@ -229,7 +220,8 @@ app.get('/callback', async (req, res) => {
 
   const { refresh_token, access_token } = await getTokens(code)
 
-  const user = await querySpotifyUser(access_token)
+  const api = new API(access_token)
+  const { data: user } = await api.get('me')
   console.log('Logged user', user.id)
 
   return actions[action]({
