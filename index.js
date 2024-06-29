@@ -64,13 +64,8 @@ class SpotifyCrawler {
     return user.started
   }
 
-  async toggleStarted() {
-    const started = await this.isStarted()
-
-    return usersDb.updateAsync(
-      { _id: this.username },
-      { $set: { started: !started } },
-    )
+  async setStarted(started) {
+    return usersDb.updateAsync({ _id: this.username }, { $set: { started } })
   }
 
   async init() {
@@ -296,13 +291,14 @@ const crawl = async (user, nbDays) => {
     const started = await crawler.isStarted()
     if (started) {
       crawler.log('Already started')
-      // return false
+      await crawler.setStarted(false)
+      return false
     }
   } catch (err) {
     crawler.log(`User ${user} not found`)
     return false
   }
-  await crawler.toggleStarted()
+  await crawler.setStarted(true)
 
   const process = performance.now()
   try {
@@ -346,7 +342,7 @@ const crawl = async (user, nbDays) => {
     }
   } finally {
     crawler.log(`Process: ${process - performance.now()}ms`)
-    await crawler.toggleStarted()
+    await crawler.setStarted(false)
   }
 
   return true
