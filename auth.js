@@ -3,7 +3,6 @@ const express = require('express')
 const morgan = require('morgan')
 const axios = require('axios')
 const cookieParser = require('cookie-parser')
-const { v4: uuidV4 } = require('uuid')
 const EventEmitter = require('events')
 
 const usersDb = require('./users/db')
@@ -12,8 +11,10 @@ const API = require('./api')
 
 const stateKey = 'spotify_auth_state'
 const actionKey = 'rrr_action'
-const salt = uuidV4()
 
+const randomString = () => crypto.randomBytes(4).toString('hex')
+
+const salt = randomString()
 const encrypt = ({ key, value }) =>
   crypto
     .createHmac('sha512', key + salt)
@@ -168,7 +169,7 @@ const actions = {
 app.get(
   Object.keys(actions).map((k) => `/${k}`),
   (req, res) => {
-    const state = uuidV4()
+    const state = randomString()
     const action = req.path.replace('/', '')
 
     res.cookie(stateKey, state)
@@ -236,14 +237,16 @@ app.get('/done/:code', (req, res) => {
   res.end(codes[req.params.code])
 })
 
-app.get('/crawl/:userId', (req, res) => {
-  app.emitter.emit('crawl', req.params.userId, req.query.nbDays)
-  return res.redirect(`/done/${encrypt({ value: 1 })}`)
-})
+app.use(`/admin/${config.adminKey}`, (router) => {
+  router.get('/crawl/:userId', (req, res) => {
+    app.emitter.emit('crawl', req.params.userId, req.query.nbDays)
+    return res.redirect(`/done/${encrypt({ value: 1 })}`)
+  })
 
-app.get('/reset/:userId', (req, res) => {
-  app.emitter.emit('reset', req.params.userId, req.query.nbDays)
-  return res.redirect(`/done/${encrypt({ value: 1 })}`)
+  router.get('/reset/:userId', (req, res) => {
+    app.emitter.emit('reset', req.params.userId, req.query.nbDays)
+    return res.redirect(`/done/${encrypt({ value: 1 })}`)
+  })
 })
 
 app.get('/ask', (req, res) => {

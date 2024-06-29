@@ -304,8 +304,8 @@ const crawl = async (user, nbDays) => {
   }
   await crawler.toggleStarted()
 
+  const process = performance.now()
   try {
-    console.time('Process')
     await crawler.init()
 
     const artists = await crawler.getArtistIds()
@@ -326,7 +326,7 @@ const crawl = async (user, nbDays) => {
     crawler.error(err)
     if (err.message === 'Refresh token revoked') {
       await crawler.drop()
-      console.timeEnd('Process')
+      crawler.log(`Process: ${process - performance.now()}ms`)
       return false
     }
 
@@ -345,7 +345,7 @@ const crawl = async (user, nbDays) => {
       crawler.error(err)
     }
   } finally {
-    console.timeEnd('Process')
+    crawler.log(`Process: ${process - performance.now()}ms`)
     await crawler.toggleStarted()
   }
 
@@ -379,4 +379,6 @@ auth.emitter.on('reset', async (id, nbDays) => {
   return crawl(id, nbDays)
 })
 
-auth.listen(3000, () => console.log('Listening...'))
+auth.listen(3000, () =>
+  console.log(`Listening with admin key "${config.adminKey}"...`),
+)
