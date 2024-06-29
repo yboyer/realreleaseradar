@@ -4,8 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index",
-    "ci": "yarn install --frozen-lockfile --ignore-optional"
+    "start": "node index"
   },
   "keywords": [],
   "author": {
@@ -24,7 +23,7 @@
     "uuid": "^10.0.0"
   },
   "devDependencies": {
-    "eslint": "9.6.0",
+    "eslint": "^8.57.0",
     "eslint-config-prettier": "9.1.0",
     "eslint-plugin-import": "2.29.1",
     "eslint-plugin-prettier": "5.1.3",

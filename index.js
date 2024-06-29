@@ -88,6 +88,15 @@ class SpotifyCrawler {
     )
   }
 
+  async drop() {
+    await Promise.all(
+      [this.artistsDb, this.albumsDb, this.tracksDb].map((e) =>
+        e.dropDatabaseAsync(),
+      ),
+    )
+    await usersDb.remove({ _id: this.username })
+  }
+
   async getArtistIds(last) {
     this.log(`Getting artists`)
     if (!last) {
@@ -315,6 +324,11 @@ const crawl = async (user, nbDays) => {
     await crawler.addTracks(playlist, [...tracks])
   } catch (err) {
     crawler.error(err)
+    if (err.message === 'Refresh token revoked') {
+      await crawler.drop()
+      console.timeEnd('Process')
+      return false
+    }
 
     let message = 'An unexpected error occurred during data retrieval.'
     if (err.error === 'invalid_grant') {
