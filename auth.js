@@ -237,17 +237,16 @@ app.get('/done/:code', (req, res) => {
   res.end(codes[req.params.code])
 })
 
-app.use(`/admin/${config.adminKey}`, (router) => {
-  router.get('/crawl/:userId', (req, res) => {
-    app.emitter.emit('crawl', req.params.userId, req.query.nbDays)
-    return res.redirect(`/done/${encrypt({ value: 1 })}`)
-  })
-
-  router.get('/reset/:userId', (req, res) => {
-    app.emitter.emit('reset', req.params.userId, req.query.nbDays)
-    return res.redirect(`/done/${encrypt({ value: 1 })}`)
-  })
+const adminRouter = express.Router()
+adminRouter.get('/crawl/:userId', (req, res) => {
+  app.emitter.emit('crawl', req.params.userId, req.query.nbDays)
+  return res.redirect(`/done/${encrypt({ value: 1 })}`)
 })
+adminRouter.get('/reset/:userId', (req, res) => {
+  app.emitter.emit('reset', req.params.userId, req.query.nbDays)
+  return res.redirect(`/done/${encrypt({ value: 1 })}`)
+})
+app.use(`/admin/${config.adminKey}`, adminRouter)
 
 app.get('/ask', (req, res) => {
   if (!config.discussion) {
