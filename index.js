@@ -184,7 +184,6 @@ class SpotifyCrawler {
       return newDocs.map((d) => d._id)
     } catch (e) {
       this.log(e)
-      this.log(data.albums.map((a) => a.tracks.items))
       return this.getTrackURIs(albums)
     }
   }
