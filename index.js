@@ -151,11 +151,18 @@ class SpotifyCrawler {
 
     const ids = data.items
       .filter(isReallyNew)
-      .filter((e) => !albumIds.includes(e.id))
-      .map((i) => ({ _id: i.id }))
-    const newDocs = await this.albumsDb.insertAsync(ids)
+      .map((i) => i.id)
+      .filter((id) => !albumIds.includes(id))
 
-    return newDocs.map((d) => d._id)
+    for (const _id of ids) {
+      try {
+        await this.albumsDb.insertAsync({ _id })
+      } catch (e) {
+        this.log(e)
+      }
+    }
+
+    return ids
   }
 
   async getTrackURIs(albums = []) {
@@ -170,22 +177,18 @@ class SpotifyCrawler {
     if (!data) {
       return []
     }
-    try {
-      const tracks = [].concat(
-        ...data.albums.map((a) => a.tracks.items.map((i) => i.uri)),
-      )
-      const newDocs = await this.tracksDb.insertAsync(
-        tracks
-          .filter((e) => !trackIds.includes(e))
-          .map((_id) => ({
-            _id,
-          })),
-      )
-      return newDocs.map((d) => d._id)
-    } catch (e) {
-      this.log(e)
-      return this.getTrackURIs(albums)
+    const tracks = data.albums
+      .map((a) => a.tracks.items.map((i) => i.uri))
+      .flat()
+    const ids = tracks.filter((e) => !trackIds.includes(e))
+    for (const _id of ids) {
+      try {
+        await this.tracksDb.insertAsync({ _id })
+      } catch (e) {
+        this.log(e)
+      }
     }
+    return ids
   }
 
   async getPlaylistId() {
