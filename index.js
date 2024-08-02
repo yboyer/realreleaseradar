@@ -324,7 +324,7 @@ const crawl = async (user, nbDays) => {
     crawler.error(err)
     if (err.message === 'Refresh token revoked') {
       await crawler.drop()
-      crawler.log(`Process: ${process - performance.now()}ms`)
+      crawler.log(`Process: ${performance.now() - process}ms`)
       return false
     }
 
@@ -343,7 +343,7 @@ const crawl = async (user, nbDays) => {
       crawler.error(err)
     }
   } finally {
-    crawler.log(`Process: ${process - performance.now()}ms`)
+    crawler.log(`Process: ${performance.now() - process}ms`)
     await crawler.setStarted(false)
   }
 
