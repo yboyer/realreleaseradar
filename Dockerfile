@@ -26,7 +26,7 @@ RUN npm ci --omit=dev
 
 FROM node:20.16.0-alpine
 EXPOSE 3000
-ENV NODE_ENV production
+ENV NODE_ENV=production
 WORKDIR /app
 RUN apk --no-cache add curl
 COPY --from=production-deps /app/node_modules /app/node_modules
