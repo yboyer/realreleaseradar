@@ -12,10 +12,13 @@ module.exports = class API {
       const method = this.request[k]
       this.request[k] = (...args) =>
         method(...args).catch((err) => {
-          switch (err.response?.status) {
+          const statusCode = err.response?.status
+          console.log('Error', statusCode, err.response.request.path)
+          switch (statusCode) {
             case 404:
               return {}
             case 400:
+            case 403:
             case 429:
             case 500:
             case 501:
