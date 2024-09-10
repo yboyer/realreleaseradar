@@ -18,7 +18,7 @@
     "cookie-parser": "^1.4.6",
     "cron": "^3.1.7",
     "dotenv": "^16.4.5",
-    "express": "^4.19.2",
+    "express": "^4.20.0",
     "morgan": "^1.10.0"
   },
   "devDependencies": {
