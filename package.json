@@ -15,7 +15,7 @@
   "dependencies": {
     "@seald-io/nedb": "^4.0.4",
     "axios": "^1.7.7",
-    "cookie-parser": "^1.4.6",
+    "cookie-parser": "^1.4.7",
     "cron": "^3.1.7",
     "dotenv": "^16.4.5",
     "express": "^4.21.0",
