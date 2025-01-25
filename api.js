@@ -1,4 +1,5 @@
 const axios = require('axios')
+const { setTimeout } = require('timers/promises')
 
 module.exports = class API {
   constructor(token) {
@@ -11,7 +12,7 @@ module.exports = class API {
     ;['get', 'put', 'post'].forEach((k) => {
       const method = this.request[k]
       this.request[k] = (...args) =>
-        method(...args).catch((err) => {
+        method(...args).catch(async (err) => {
           const statusCode = err.response?.status
           console.log('Error', statusCode, err.response.request.path)
           switch (statusCode) {
@@ -24,15 +25,11 @@ module.exports = class API {
             case 501:
             case 502:
             case 504:
-              return new Promise((resolve, reject) => {
-                const ms =
-                  Number(err.response.headers['retry-after']) * 1e3 + 1e3 || 3e3
-                console.log(`Waiting ${ms / 1000} second`)
-                setTimeout(
-                  () => this.request[k](...args).then(resolve, reject),
-                  ms,
-                )
-              })
+              const ms =
+                Number(err.response.headers['retry-after']) * 1e3 + 1e3 || 3e3
+              console.log(`Waiting ${ms / 1000} second`)
+              await setTimeout(ms)
+              return this.request[k](...args)
             default:
               throw err
           }

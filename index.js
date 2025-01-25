@@ -244,6 +244,7 @@ class SpotifyCrawler {
     )
 
     if (!data.items.length) {
+      this.log('Tracks removed')
       return
     }
 
