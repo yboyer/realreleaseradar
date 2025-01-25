@@ -1,6 +1,24 @@
 const axios = require('axios')
 const { setTimeout } = require('timers/promises')
 
+const MAX_RETRIES = 20
+const DEFAULT_TIMEOUT = 3e3
+
+class ApiError extends Error {
+  name = 'ApiError'
+  constructor(axiosError) {
+    super(axiosError.message)
+
+    if (axiosError.response) {
+      const { data, config } = axiosError.response
+      this.message = data?.error?.message || JSON.stringify(data)
+      this.method = config.method
+      this.url = config.url
+      this.body = config?.data
+    }
+  }
+}
+
 module.exports = class API {
   constructor(token) {
     this.request = axios.create({
@@ -9,12 +27,26 @@ module.exports = class API {
         Authorization: `Bearer ${token}`,
       },
     })
-    ;['get', 'put', 'post'].forEach((k) => {
+    ;['get', 'put', 'post', 'delete'].forEach((k) => {
       const method = this.request[k]
-      this.request[k] = (...args) =>
-        method(...args).catch(async (err) => {
+      this.request[k] = (url, data, config = {}) =>
+        method(url, data, config).catch(async (err) => {
           const statusCode = err.response?.status
-          console.log('Error', statusCode, err.response.request.path)
+          console.log(
+            'Error',
+            statusCode,
+            err.config.method,
+            err.response.request.path,
+          )
+
+          const updatedConfig = {
+            ...config,
+            retries: (config.retries ?? MAX_RETRIES) - 1,
+          }
+          if (updatedConfig.retries < 0) {
+            throw new ApiError(err)
+          }
+
           switch (statusCode) {
             case 404:
               return {}
@@ -26,12 +58,15 @@ module.exports = class API {
             case 502:
             case 504:
               const ms =
-                Number(err.response.headers['retry-after']) * 1e3 + 1e3 || 3e3
-              console.log(`Waiting ${ms / 1000} second`)
+                Number(err.response.headers['retry-after']) * 1e3 + 1e3 ||
+                DEFAULT_TIMEOUT
+              console.log(
+                `Waiting ${ms / 1e3} second (retries left: ${updatedConfig.retries})`,
+              )
               await setTimeout(ms)
-              return this.request[k](...args)
+              return this.request[k](url, data, updatedConfig)
             default:
-              throw err
+              throw new ApiError(err)
           }
         })
     })

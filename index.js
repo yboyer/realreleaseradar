@@ -250,7 +250,7 @@ class SpotifyCrawler {
 
     await this.request.delete(url, {
       data: {
-        tracks: data.items.map((i) => i.track),
+        tracks: data.items.map((i) => i.track).filter(Boolean),
       },
     })
 
@@ -341,6 +341,7 @@ const crawl = async (user, nbDays) => {
       await crawler.removeTracks(playlist)
       await crawler.setError(playlist, message)
     } catch (err) {
+      crawler.error('Impossible to set error message')
       crawler.error(err)
     }
   } finally {
