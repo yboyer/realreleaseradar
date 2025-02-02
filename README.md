@@ -5,15 +5,16 @@
 
 > Creates and updates, every friday, a Release Radar playlist on Spotify with **all** your new weekly tracks.
 
- - https://spotify.yoannboyer.com
-
+- [https://spotify.yoannboyer.com](https://spotify.yoannboyer.com)
 
 ## Usage
+
 ### Setup
-1. Go to https://developer.spotify.com/my-applications/
+
+1. Go to [https://developer.spotify.com/my-applications/](https://developer.spotify.com/my-applications/)
 2. Create an app
 3. Get the client id and the client secret
-4. Set your redirect url _(https://your.base.url/callback -> the `/callback` is important)_
+4. Set your redirect url _([https://your.base.url/callback](https://your.base.url/callback) -> the `/callback` is important)_
 
 ```shell
 docker run --name releaseradar \
@@ -22,7 +23,7 @@ docker run --name releaseradar \
   -e REDIRECT_URI=$REDIRECT_URI \
   -v $PWD/releaseradar_data/:/src/users/dbs \
   -p 3000:3000 \
-  yboyer/rrr
+  ghcr.io/yboyer/realreleaseradar
 ```
 
 <p align="center">
@@ -30,4 +31,5 @@ docker run --name releaseradar \
 </p>
 
 ## License
+
 MIT © [Yoann Boyer](http://yoannboyer.com)
