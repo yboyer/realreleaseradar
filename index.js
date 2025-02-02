@@ -234,27 +234,53 @@ class SpotifyCrawler {
     return playlistId
   }
 
-  async removeTracks(playlistId) {
-    this.log('Removing tracks')
+  async getPlaylistTrackURIs(playlistId, offset = 0) {
+    this.log(`Getting playlist tracks (offset: ${offset})`)
+    const limit = 50
     const url = `users/${this.username}/playlists/${playlistId}/tracks`
 
-    // Get current tracks
     const { data } = await this.request.get(
-      `${url}?fields=items(track(uri))&limit=50`,
+      `${url}?limit=${limit}&offset=${offset}`,
     )
 
-    if (!data.items.length) {
-      this.log('Tracks removed')
+    const trackURIs = data.items
+      .map((i) => i.track)
+      .filter(Boolean)
+      .map((t) => t.uri)
+
+    if (!data.next) {
+      return trackURIs
+    }
+
+    const uris = await this.getPlaylistTrackURIs(playlistId, offset + limit)
+
+    return [...new Set([...trackURIs, ...uris])]
+  }
+
+  async removeTracks(playlistId) {
+    const trackIds = await this.getPlaylistTrackURIs(playlistId)
+
+    this.log(`Removing tracks: ${trackIds.length}`)
+
+    const chunkSize = 100
+    const chunks = []
+    for (let i = 0, j = trackIds.length; i < j; i += chunkSize) {
+      chunks.push(trackIds.slice(i, i + chunkSize))
+    }
+
+    if (!chunks.length) {
       return
     }
 
-    await this.request.delete(url, {
-      data: {
-        tracks: data.items.map((i) => i.track).filter(Boolean),
-      },
-    })
+    const url = `users/${this.username}/playlists/${playlistId}/tracks`
 
-    return this.removeTracks(playlistId)
+    for (const uris of chunks) {
+      await this.request.delete(url, {
+        data: {
+          tracks: uris.map((uri) => ({ uri })),
+        },
+      })
+    }
   }
 
   async addTracks(playlistId, trackIds = []) {
