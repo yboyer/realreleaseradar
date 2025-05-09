@@ -14,7 +14,7 @@
     "vue-cookies": "^1.8.6"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^5.2.3",
+    "@vitejs/plugin-vue": "^5.2.4",
     "typescript": "^5.8.3",
     "vite": "^5.4.19",
     "vue-tsc": "^2.2.10"
