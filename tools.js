@@ -16,9 +16,9 @@ exports.refresh = async _id => {
       {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
-          Authorization: `Basic ${Buffer.from(`${config.clientId}:${config.clientSecret}`).toString(
-            'base64'
-          )}`,
+          Authorization: `Basic ${Buffer.from(
+            `${config.CLIENT_ID}:${config.CLIENT_SECRET}`
+          ).toString('base64')}`,
         },
       }
     )

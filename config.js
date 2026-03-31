@@ -1,20 +1,18 @@
 const crypto = require('node:crypto')
-require('dotenv').config()
+const { cleanEnv, str, url } = require('envalid')
 
-module.exports = {
-  isProduction: process.env.NODE_ENV === 'production',
-  clientId: process.env.CLIENT_ID,
-  clientSecret: process.env.CLIENT_SECRET,
-  redirectUri: process.env.REDIRECT_URI,
-  discussion: process.env.DISCUSSION,
-  adminKey: process.env.ADMIN_KEY || crypto.randomBytes(4).toString('hex'),
-  get playlistName() {
-    let name = 'Real Release Radar'
-    if (process.env.NODE_ENV !== 'production') {
-      name = `[DEV] ${name}`
-    }
-    return name
-  },
-  playlistDescription:
-    'ALL new releases of your followed artists every Friday. Create your own: https://spotify.yoannboyer.com',
-}
+module.exports = cleanEnv(process.env, {
+  NODE_ENV: str({ default: 'development' }),
+  CLIENT_ID: str(),
+  CLIENT_SECRET: str(),
+  REDIRECT_URI: url({
+    devDefault: 'http://localhost:3000/callback',
+  }),
+  DISCUSSION: str({ default: '' }),
+  ADMIN_KEY: str({ default: crypto.randomBytes(4).toString('hex') }),
+  PLAYLIST_NAME: str({ default: 'Real Release Radar', devDefault: '[DEV] Real Release Radar' }),
+  PLAYLIST_DESCRIPTION: str({
+    default:
+      'ALL new releases of your followed artists every Friday. Create your own: https://spotify.yoannboyer.com',
+  }),
+})

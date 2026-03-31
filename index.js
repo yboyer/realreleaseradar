@@ -382,4 +382,4 @@ auth.emitter.on('reset', async (id, nbDays) => {
   return crawl(id, nbDays)
 })
 
-auth.listen(3000, () => console.log(`Listening with admin key "${config.adminKey}"...`))
+auth.listen(3000, () => console.log(`Listening with admin key "${config.ADMIN_KEY}"...`))

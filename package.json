@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index",
+    "start": "NODE_ENV=development node --env-file=.env index",
     "lint": "biome check . "
   },
   "keywords": [],
@@ -18,7 +18,7 @@
     "axios": "^1.14.0",
     "cookie-parser": "^1.4.7",
     "cron": "^3.5.0",
-    "dotenv": "^16.6.1",
+    "envalid": "^8.1.1",
     "express": "^4.22.1",
     "morgan": "^1.10.1"
   },

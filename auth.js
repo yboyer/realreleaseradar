@@ -25,10 +25,10 @@ const encrypt = ({ key, value }) =>
 const codes = {
   [encrypt({
     value: 1,
-  })]: `Done. Now just wait a few minutes for the playlist to fill. (~5min). Each friday the content of the playlist "${config.playlistName}" will be updated with the new releases.`,
+  })]: `Done. Now just wait a few minutes for the playlist to fill. (~5min). Each friday the content of the playlist "${config.PLAYLIST_NAME}" will be updated with the new releases.`,
   [encrypt({
     value: 2,
-  })]: `Done. Each friday the content of the playlist "${config.playlistName}" will be updated with the new releases.`,
+  })]: `Done. Each friday the content of the playlist "${config.PLAYLIST_NAME}" will be updated with the new releases.`,
   [encrypt({ value: 3 })]: 'Error. Please retry.',
   [encrypt({ value: 4 })]: 'User not logged. Please signin.',
   [encrypt({ value: 5 })]: 'User deleted.',
@@ -47,13 +47,13 @@ const getTokens = async code => {
     'https://accounts.spotify.com/api/token',
     {
       code,
-      redirect_uri: config.redirectUri,
+      redirect_uri: config.REDIRECT_URI,
       grant_type: 'authorization_code',
     },
     {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        Authorization: `Basic ${Buffer.from(`${config.clientId}:${config.clientSecret}`).toString(
+        Authorization: `Basic ${Buffer.from(`${config.CLIENT_ID}:${config.CLIENT_SECRET}`).toString(
           'base64'
         )}`,
       },
@@ -181,9 +181,9 @@ app.get(
     const scope = ['user-follow-read', 'playlist-modify-public', 'ugc-image-upload'].join(' ')
     const params = new URLSearchParams([
       ['response_type', 'code'],
-      ['client_id', config.clientId],
+      ['client_id', config.CLIENT_ID],
       ['scope', scope],
-      ['redirect_uri', config.redirectUri],
+      ['redirect_uri', config.REDIRECT_URI],
       ['state', state],
     ])
     res.redirect(`https://accounts.spotify.com/authorize?${params.toString()}`)
@@ -237,13 +237,13 @@ adminRouter.get('/reset/:userId', (req, res) => {
   app.emitter.emit('reset', req.params.userId, req.query.nbDays)
   return res.redirect(`/done/${encrypt({ value: 1 })}`)
 })
-app.use(`/admin/${config.adminKey}`, adminRouter)
+app.use(`/admin/${config.ADMIN_KEY}`, adminRouter)
 
 app.get('/ask', (_req, res) => {
-  if (!config.discussion) {
+  if (!config.DISCUSSION) {
     res.sendStatus(404)
   }
-  res.redirect(config.discussion)
+  res.redirect(config.DISCUSSION)
 })
 
 app.use(express.static('static'))
