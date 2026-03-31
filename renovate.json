@@ -1,5 +1,5 @@
 {
-  "extends": ["config:base", ":disableRateLimiting"],
+  "extends": [ "config:recommended",  ":disableRateLimiting"],
   "rangeStrategy": "bump",
   "ignoreTests": true,
   "packageRules": [
