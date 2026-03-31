@@ -16,78 +16,82 @@
 * {
   box-sizing: border-box;
 }
-html, body {
+html,
+body {
   height: 100%;
 }
 body {
-  margin: 0;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   place-items: center;
+  justify-content: center;
+  margin: 0;
 }
 #top {
   position: absolute;
   top: 0;
   right: 0;
-  background-image: url("./assets/top.png");
-  height: 128px;
   width: 134px;
+  height: 128px;
+  background-image: url("./assets/top.png");
   background-size: cover;
 }
 #content {
   position: relative;
 }
 .card {
-  background-color: #282828;
   position: relative;
-  height: 600px;
-  width: 380px;
-  border-radius: 10px;
-  padding: 2rem;
   z-index: 2;
+  width: 380px;
+  height: 600px;
+  padding: 2rem;
+  background-color: #282828;
+  border-radius: 10px;
   /* elevation: 9 */
-  box-shadow: rgba(0, 0, 0, 0.2) 0px 5px 6px -3px, rgba(0, 0, 0, 0.14) 0px 9px 12px 1px, rgba(0, 0, 0, 0.12) 0px 3px 14px 2px;
+  box-shadow:
+    rgba(0, 0, 0, 0.2) 0px 5px 6px -3px,
+    rgba(0, 0, 0, 0.14) 0px 9px 12px 1px,
+    rgba(0, 0, 0, 0.12) 0px 3px 14px 2px;
 }
 .source {
   margin-top: 1em;
   opacity: 0.5;
 }
 .source:hover {
-  opacity: .87;
+  opacity: 0.87;
 }
 .github {
-  height: 18px;
   width: 18px;
+  height: 18px;
 }
 h1 {
-  font-size: 2.9em;
-  line-height: 1.1;
   margin-top: 0;
   margin-bottom: 0.45em;
+  font-size: 2.9em;
+  line-height: 1.1;
 }
 #app {
-  text-align: center;
   height: 100%;
+  text-align: center;
 }
 a {
-  text-decoration: none;
   color: inherit;
+  text-decoration: none;
 }
 .button {
   display: flex;
   width: fit-content;
-  margin: auto;
-  border-radius: 100px;
-  border: 1px solid transparent;
   padding: 0.6em 1em;
+  margin: auto;
+  font-family: inherit;
   font-size: 1em;
   font-weight: 500;
-  font-family: inherit;
-  background-color: #1CD760;
-  cursor: pointer;
-  transition: border-color 0.2s;
   color: #141414;
+  cursor: pointer;
+  background-color: #1cd760;
+  border: 1px solid transparent;
+  border-radius: 100px;
+  transition: border-color 0.2s;
 }
 .button:hover {
   border-color: #ebebeb;

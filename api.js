@@ -1,5 +1,5 @@
 const axios = require('axios')
-const { setTimeout } = require('timers/promises')
+const { setTimeout } = require('node:timers/promises')
 
 const MAX_RETRIES = 20
 const DEFAULT_TIMEOUT = 3e3
@@ -27,17 +27,12 @@ module.exports = class API {
         Authorization: `Bearer ${token}`,
       },
     })
-    ;['get', 'put', 'post', 'delete'].forEach((k) => {
+    ;['get', 'put', 'post', 'delete'].forEach(k => {
       const method = this.request[k]
       this.request[k] = (url, data, config = {}) =>
-        method(url, data, config).catch(async (err) => {
+        method(url, data, config).catch(async err => {
           const statusCode = err.response?.status
-          console.log(
-            'Error',
-            statusCode,
-            err.config.method,
-            err.response.request.path,
-          )
+          console.log('Error', statusCode, err.config.method, err.response.request.path)
 
           const updatedConfig = {
             ...config,
@@ -56,15 +51,12 @@ module.exports = class API {
             case 500:
             case 501:
             case 502:
-            case 504:
-              const ms =
-                Number(err.response.headers['retry-after']) * 1e3 + 1e3 ||
-                DEFAULT_TIMEOUT
-              console.log(
-                `Waiting ${ms / 1e3} second (retries left: ${updatedConfig.retries})`,
-              )
+            case 504: {
+              const ms = Number(err.response.headers['retry-after']) * 1e3 + 1e3 || DEFAULT_TIMEOUT
+              console.log(`Waiting ${ms / 1e3} second (retries left: ${updatedConfig.retries})`)
               await setTimeout(ms)
               return this.request[k](url, data, updatedConfig)
+            }
             default:
               throw new ApiError(err)
           }

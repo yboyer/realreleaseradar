@@ -3,8 +3,8 @@ const { CronJob } = require('cron')
 const config = require('./config')
 const usersDb = require('./users/db')
 const auth = require('./auth')
-const path = require('path')
-const fs = require('fs/promises')
+const path = require('node:path')
+const fs = require('node:fs/promises')
 
 const { refresh } = require('./tools')
 const API = require('./api')
@@ -34,7 +34,7 @@ const dbs = {
   },
 }
 
-const getIds = (i) => i._id
+const getIds = item => item._id
 
 class SpotifyCrawler {
   constructor(username, days = 14) {
@@ -77,17 +77,13 @@ class SpotifyCrawler {
 
   async reset() {
     await Promise.all(
-      [this.artistsDb, this.albumsDb, this.tracksDb].map((e) =>
-        e.removeAsync({}, { multi: true }),
-      ),
+      [this.artistsDb, this.albumsDb, this.tracksDb].map(e => e.removeAsync({}, { multi: true }))
     )
   }
 
   async drop() {
     await Promise.all(
-      [this.artistsDb, this.albumsDb, this.tracksDb].map((e) =>
-        e.dropDatabaseAsync(),
-      ),
+      [this.artistsDb, this.albumsDb, this.tracksDb].map(e => e.dropDatabaseAsync())
     )
     await usersDb.remove({ _id: this.username })
   }
@@ -100,35 +96,30 @@ class SpotifyCrawler {
     const artistIds = (await this.artistsDb.findAsync()).map(getIds)
 
     const { data } = await this.request.get(
-      `me/following?type=artist&limit=50${last ? `&after=${last}` : ''}`,
+      `me/following?type=artist&limit=50${last ? `&after=${last}` : ''}`
     )
     if (!data?.artists.items.length) {
       return artistIds
     }
 
     const newArtists = data.artists.items
-      .map((i) => ({
+      .map(i => ({
         _id: i.id,
         name: i.name,
       }))
       .filter(
         // remove duplicates
         (artist, i, self) =>
-          i === self.findIndex((t) => t._id === artist._id) &&
-          !artistIds.includes(artist._id),
+          i === self.findIndex(t => t._id === artist._id) && !artistIds.includes(artist._id)
       )
 
     await this.artistsDb.insertAsync(newArtists)
 
     const lastArtistId = data.artists.cursors.after
     if (!lastArtistId) {
-      const artistIds = (await this.artistsDb.findAsync()).map(getIds)
-      this.log(
-        'Total received',
-        data.artists.total,
-        `(stored: ${artistIds.length})`,
-      )
-      return artistIds
+      const newArtistIds = (await this.artistsDb.findAsync()).map(getIds)
+      this.log('Total received', data.artists.total, `(stored: ${newArtistIds.length})`)
+      return newArtistIds
     }
 
     return this.getArtistIds(lastArtistId)
@@ -137,13 +128,12 @@ class SpotifyCrawler {
   async getAlbumIds(artistId) {
     this.log(`Getting albums for ${artistId}`)
     const albumIds = (await this.albumsDb.findAsync()).map(getIds)
-    const isReallyNew = (e) =>
-      new Date(e.release_date).getTime() >= this.fromDate
+    const isReallyNew = e => new Date(e.release_date).getTime() >= this.fromDate
 
     const { data } = await this.request.get(
       `artists/${artistId}/albums?include_groups=single,album${
         this.appears_on !== false ? ',appears_on' : ''
-      }&market=FR&limit=10&offset=0`,
+      }&market=FR&limit=10&offset=0`
     )
     if (!data?.items.length) {
       return []
@@ -151,8 +141,8 @@ class SpotifyCrawler {
 
     const ids = data.items
       .filter(isReallyNew)
-      .map((i) => i.id)
-      .filter((id) => !albumIds.includes(id))
+      .map(i => i.id)
+      .filter(id => !albumIds.includes(id))
 
     for (const _id of ids) {
       try {
@@ -177,10 +167,8 @@ class SpotifyCrawler {
     if (!data) {
       return []
     }
-    const tracks = data.albums
-      .map((a) => a.tracks.items.map((i) => i.uri))
-      .flat()
-    const ids = tracks.filter((e) => !trackIds.includes(e))
+    const tracks = data.albums.flatMap(a => a.tracks.items.map(i => i.uri))
+    const ids = tracks.filter(e => !trackIds.includes(e))
     for (const _id of ids) {
       try {
         await this.tracksDb.insertAsync({ _id })
@@ -197,14 +185,11 @@ class SpotifyCrawler {
       data: { items: playlists },
     } = await this.request.get(`users/${this.username}/playlists`)
 
-    const playlist = playlists.find((p) => p.name === config.playlistName)
+    const playlist = playlists.find(p => p.name === config.playlistName)
     if (playlist) {
-      await this.request.put(
-        `users/${this.username}/playlists/${playlist.id}`,
-        {
-          description: config.playlistDescription,
-        },
-      )
+      await this.request.put(`users/${this.username}/playlists/${playlist.id}`, {
+        description: config.playlistDescription,
+      })
       return playlist.id
     }
 
@@ -219,15 +204,11 @@ class SpotifyCrawler {
     try {
       const filepath = path.join(__dirname, '.github', 'large.jpg')
       const img = await fs.readFile(filepath, { encoding: 'base64' })
-      await this.request.put(
-        `users/${this.username}/playlists/${playlistId}/images`,
-        img,
-        {
-          headers: {
-            'Content-Type': 'image/jpeg',
-          },
+      await this.request.put(`users/${this.username}/playlists/${playlistId}/images`, img, {
+        headers: {
+          'Content-Type': 'image/jpeg',
         },
-      )
+      })
     } catch (e) {
       console.error(e)
     }
@@ -239,14 +220,12 @@ class SpotifyCrawler {
     const limit = 50
     const url = `users/${this.username}/playlists/${playlistId}/tracks`
 
-    const { data } = await this.request.get(
-      `${url}?limit=${limit}&offset=${offset}`,
-    )
+    const { data } = await this.request.get(`${url}?limit=${limit}&offset=${offset}`)
 
     const trackURIs = data.items
-      .map((i) => i.track)
+      .map(i => i.track)
       .filter(Boolean)
-      .map((t) => t.uri)
+      .map(t => t.uri)
 
     if (!data.next) {
       return trackURIs
@@ -277,7 +256,7 @@ class SpotifyCrawler {
     for (const uris of chunks) {
       await this.request.delete(url, {
         data: {
-          tracks: uris.map((uri) => ({ uri })),
+          tracks: uris.map(uri => ({ uri })),
         },
       })
     }
@@ -323,7 +302,7 @@ const crawl = async (user, nbDays) => {
       await crawler.setStarted(false)
       return false
     }
-  } catch (err) {
+  } catch {
     crawler.log(`User ${user} not found`)
     return false
   }
@@ -347,17 +326,17 @@ const crawl = async (user, nbDays) => {
     const playlist = await crawler.getPlaylistId()
     await crawler.removeTracks(playlist)
     await crawler.addTracks(playlist, [...tracks])
-  } catch (err) {
-    crawler.error(err)
-    if (err.message === 'Refresh token revoked') {
+  } catch (crawlErr) {
+    crawler.error(crawlErr)
+    if (crawlErr.message === 'Refresh token revoked') {
       await crawler.drop()
       crawler.log(`Process: ${performance.now() - process}ms`)
       return false
     }
 
     let message = 'An unexpected error occurred during data retrieval.'
-    if (err.error === 'invalid_grant') {
-      message += ` ${err.error_description}.`
+    if (crawlErr.error === 'invalid_grant') {
+      message += ` ${crawlErr.error_description}.`
     } else if (config.discussion) {
       message += ' Ask for support at spotify.yoannboyer.com/ask'
     }
@@ -366,9 +345,9 @@ const crawl = async (user, nbDays) => {
       const playlist = await crawler.getPlaylistId()
       await crawler.removeTracks(playlist)
       await crawler.setError(playlist, message)
-    } catch (err) {
+    } catch (playlistError) {
       crawler.error('Impossible to set error message')
-      crawler.error(err)
+      crawler.error(playlistError)
     }
   } finally {
     crawler.log(`Process: ${performance.now() - process}ms`)
@@ -379,9 +358,7 @@ const crawl = async (user, nbDays) => {
 }
 
 const start = async () => {
-  const userIds = (await usersDb.findAsync())
-    .filter((i) => i.subscribed)
-    .map((i) => i._id)
+  const userIds = (await usersDb.findAsync()).filter(i => i.subscribed).map(i => i._id)
 
   console.log('Users:', userIds.join(', '))
 
@@ -395,7 +372,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 auth.emitter.on('crawl', crawl)
-auth.emitter.on('delete', (id) => {
+auth.emitter.on('delete', id => {
   const crawler = new SpotifyCrawler(id)
   return crawler.reset()
 })
@@ -405,6 +382,4 @@ auth.emitter.on('reset', async (id, nbDays) => {
   return crawl(id, nbDays)
 })
 
-auth.listen(3000, () =>
-  console.log(`Listening with admin key "${config.adminKey}"...`),
-)
+auth.listen(3000, () => console.log(`Listening with admin key "${config.adminKey}"...`))

@@ -1,25 +1,26 @@
 <script setup lang="ts">
-import Home from './components/Home.vue'
-import Actions from './components/Actions.vue'
-import { store } from './store'
-import { inject } from 'vue';
-import { VueCookies } from 'vue-cookies';
+  import type { VueCookies } from 'vue-cookies'
+  import { inject } from 'vue'
 
-const isDark = window.matchMedia('(prefers-color-scheme: dark)');
+  import Actions from './components/Actions.vue'
+  import Home from './components/Home.vue'
+  import { store } from './store'
 
-const $cookies = inject<VueCookies>('$cookies');
+  const isDark = window.matchMedia('(prefers-color-scheme: dark)')
 
-function updateDarkState() {
-  store.update(isDark.matches)
-}
-updateDarkState()
-isDark.addEventListener('change', updateDarkState)
+  const $cookies = inject<VueCookies>('$cookies')
 
-if ($cookies?.isKey('user')) {
-  try {
-    store.user = JSON.parse(atob($cookies.get('user')))
-  } catch (e) { }
-}
+  function updateDarkState() {
+    store.update(isDark.matches)
+  }
+  updateDarkState()
+  isDark.addEventListener('change', updateDarkState)
+
+  if ($cookies?.isKey('user')) {
+    try {
+      store.user = JSON.parse(atob($cookies.get('user')))
+    } catch {}
+  }
 </script>
 
 <template>

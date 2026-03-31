@@ -1,24 +1,25 @@
 <script setup lang="ts">
-import CheckBox from './CheckBox.vue'
-import { store } from '../store'
-import { inject } from 'vue';
-import {VueCookies} from 'vue-cookies'
+  import type { VueCookies } from 'vue-cookies'
+  import { inject } from 'vue'
 
-const $cookies = inject<VueCookies>('$cookies');
+  import { store } from '../store'
+  import CheckBox from './CheckBox.vue'
 
-function toggleFeaturing() {
-  location.href = "/toggleFeaturing"
-}
-function logout() {
-  $cookies?.set('user', '')
-  location.reload()
-}
-function subscribe() {
-  location.href = "/subscribe"
-}
-function unsubscribe() {
-  location.href = "/unsubscribe"
-}
+  const $cookies = inject<VueCookies>('$cookies')
+
+  function toggleFeaturing() {
+    location.href = '/toggleFeaturing'
+  }
+  function logout() {
+    $cookies?.set('user', '')
+    location.reload()
+  }
+  function subscribe() {
+    location.href = '/subscribe'
+  }
+  function unsubscribe() {
+    location.href = '/unsubscribe'
+  }
 </script>
 
 <template>

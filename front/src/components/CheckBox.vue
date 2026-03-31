@@ -1,16 +1,16 @@
 <script setup lang="ts">
-const props = defineProps({
-	onchange: Function,
-	label: String,
-	description: String,
-	value: Boolean,
-	disabled: Boolean,
-})
+  const props = defineProps({
+    onchange: Function,
+    label: String,
+    description: String,
+    value: Boolean,
+    disabled: Boolean,
+  })
 
-function toggle(a: Event) {
-	const value = (<HTMLInputElement>a.target).checked
-	props.onchange?.(value)
-}
+  function toggle(a: Event) {
+    const value = (<HTMLInputElement>a.target).checked
+    props.onchange?.(value)
+  }
 </script>
 
 <template>

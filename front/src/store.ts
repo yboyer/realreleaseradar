@@ -8,14 +8,14 @@ type Store = {
     artists: number
     includeFeaturing: boolean
     subscribed: boolean
-  },
-  dark: boolean,
-} & Record<string, any>
+  }
+  dark: boolean
+} & Record<string, unknown>
 
 export const store = reactive<Store>({
   user: null,
   dark: false,
   update(value: boolean) {
     this.dark = value
-  }
+  },
 })

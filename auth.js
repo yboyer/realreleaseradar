@@ -1,9 +1,9 @@
-const crypto = require('crypto')
+const crypto = require('node:crypto')
 const express = require('express')
 const morgan = require('morgan')
 const axios = require('axios')
 const cookieParser = require('cookie-parser')
-const EventEmitter = require('events')
+const EventEmitter = require('node:events')
 
 const usersDb = require('./users/db')
 const config = require('./config')
@@ -23,20 +23,24 @@ const encrypt = ({ key, value }) =>
     .slice(0, 7)
 
 const codes = {
-  [encrypt({ value: 1 })]:
-    `Done. Now just wait a few minutes for the playlist to fill. (~5min). Each friday the content of the playlist "${config.playlistName}" will be updated with the new releases.`,
-  [encrypt({ value: 2 })]:
-    `Done. Each friday the content of the playlist "${config.playlistName}" will be updated with the new releases.`,
+  [encrypt({
+    value: 1,
+  })]: `Done. Now just wait a few minutes for the playlist to fill. (~5min). Each friday the content of the playlist "${config.playlistName}" will be updated with the new releases.`,
+  [encrypt({
+    value: 2,
+  })]: `Done. Each friday the content of the playlist "${config.playlistName}" will be updated with the new releases.`,
   [encrypt({ value: 3 })]: 'Error. Please retry.',
   [encrypt({ value: 4 })]: 'User not logged. Please signin.',
   [encrypt({ value: 5 })]: 'User deleted.',
-  [encrypt({ value: 6 })]:
-    `Include artists appearing on other albums: enabled. Retrieving tracks. Please wait.`,
-  [encrypt({ value: 7 })]:
-    `Include artists appearing on other albums: disabled. Retrieving tracks. Please wait.`,
+  [encrypt({
+    value: 6,
+  })]: `Include artists appearing on other albums: enabled. Retrieving tracks. Please wait.`,
+  [encrypt({
+    value: 7,
+  })]: `Include artists appearing on other albums: disabled. Retrieving tracks. Please wait.`,
 }
 
-const getTokens = async (code) => {
+const getTokens = async code => {
   const {
     data: { access_token, refresh_token },
   } = await axios.post(
@@ -49,11 +53,11 @@ const getTokens = async (code) => {
     {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        Authorization: `Basic ${Buffer.from(
-          `${config.clientId}:${config.clientSecret}`,
-        ).toString('base64')}`,
+        Authorization: `Basic ${Buffer.from(`${config.clientId}:${config.clientSecret}`).toString(
+          'base64'
+        )}`,
       },
-    },
+    }
   )
 
   return {
@@ -65,11 +69,9 @@ const getTokens = async (code) => {
 const app = express()
 app.use(cookieParser())
 app.use(
-  morgan(
-    ':date[iso] :remote-addr :method :url HTTP/:http-version :status - :response-time ms',
-  ),
+  morgan(':date[iso] :remote-addr :method :url HTTP/:http-version :status - :response-time ms')
 )
-app.use((req, res, next) => {
+app.use((_req, res, next) => {
   res.set('Cache-Control', 'no-store')
   next()
 })
@@ -87,14 +89,14 @@ async function setCookieAndSend(res, userId) {
             subscribed: dbUser.subscribed,
             artists: dbUser.artists,
             includeFeaturing: dbUser.appears_on,
-          }),
+          })
         ).toString('base64')
       : '',
     {
       sameSite: true,
       maxAge: 10_000,
       secure: config.isProduction,
-    },
+    }
   )
   res.redirect('/')
 }
@@ -116,7 +118,7 @@ const actions = {
           name: user.display_name,
         },
       },
-      { upsert: true },
+      { upsert: true }
     )
     setCookieAndSend(res, user.id)
   },
@@ -127,7 +129,7 @@ const actions = {
     await usersDb.updateAsync(
       { _id: user.id },
       { $set: { _id: user.id, access_token, refresh_token, subscribed: true } },
-      { upsert: true },
+      { upsert: true }
     )
     if (!dbUser?.subscribed) {
       app.emitter.emit('crawl', user.id)
@@ -137,9 +139,7 @@ const actions = {
   },
 
   async unsubscribe({ user, res }) {
-    const result = await usersDb
-      .removeAsync({ _id: user.id }, {})
-      .catch(() => {})
+    const result = await usersDb.removeAsync({ _id: user.id }, {}).catch(() => {})
     if (result?.numRemoved === 1) {
       app.emitter.emit('delete', user.id)
     }
@@ -156,10 +156,7 @@ const actions = {
 
     const enabled = !dbUser.appears_on
 
-    await usersDb.updateAsync(
-      { _id: user.id },
-      { $set: { appears_on: enabled } },
-    )
+    await usersDb.updateAsync({ _id: user.id }, { $set: { appears_on: enabled } })
     app.emitter.emit('reset', user.id, 7)
 
     setCookieAndSend(res, user.id)
@@ -167,7 +164,7 @@ const actions = {
 }
 
 app.get(
-  Object.keys(actions).map((k) => `/${k}`),
+  Object.keys(actions).map(k => `/${k}`),
   (req, res) => {
     const state = randomString()
     const action = req.path.replace('/', '')
@@ -178,14 +175,10 @@ app.get(
       encrypt({
         key: state,
         value: action,
-      }),
+      })
     )
 
-    const scope = [
-      'user-follow-read',
-      'playlist-modify-public',
-      'ugc-image-upload',
-    ].join(' ')
+    const scope = ['user-follow-read', 'playlist-modify-public', 'ugc-image-upload'].join(' ')
     const params = new URLSearchParams([
       ['response_type', 'code'],
       ['client_id', config.clientId],
@@ -194,13 +187,11 @@ app.get(
       ['state', state],
     ])
     res.redirect(`https://accounts.spotify.com/authorize?${params.toString()}`)
-  },
+  }
 )
 
 const getAction = (state, hash) =>
-  Object.keys(actions).filter(
-    (action) => encrypt({ key: state, value: action }) === hash,
-  )[0]
+  Object.keys(actions).filter(action => encrypt({ key: state, value: action }) === hash)[0]
 
 app.get('/callback', async (req, res) => {
   const code = req.query.code || null
@@ -248,7 +239,7 @@ adminRouter.get('/reset/:userId', (req, res) => {
 })
 app.use(`/admin/${config.adminKey}`, adminRouter)
 
-app.get('/ask', (req, res) => {
+app.get('/ask', (_req, res) => {
   if (!config.discussion) {
     res.sendStatus(404)
   }
