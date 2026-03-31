@@ -10,7 +10,8 @@ type Store = {
     subscribed: boolean
   }
   dark: boolean
-} & Record<string, unknown>
+  // biome-ignore lint/suspicious/noExplicitAny: needed
+} & Record<string, any>
 
 export const store = reactive<Store>({
   user: null,
