@@ -185,10 +185,10 @@ class SpotifyCrawler {
       data: { items: playlists },
     } = await this.request.get(`users/${this.username}/playlists`)
 
-    const playlist = playlists.find(p => p.name === config.playlistName)
+    const playlist = playlists.find(p => p.name === config.PLAYLIST_NAME)
     if (playlist) {
       await this.request.put(`users/${this.username}/playlists/${playlist.id}`, {
-        description: config.playlistDescription,
+        description: config.PLAYLIST_DESCRIPTION,
       })
       return playlist.id
     }
@@ -196,8 +196,8 @@ class SpotifyCrawler {
     const {
       data: { id: playlistId },
     } = await this.request.post(`users/${this.username}/playlists`, {
-      name: config.playlistName,
-      description: config.playlistDescription,
+      name: config.PLAYLIST_NAME,
+      description: config.PLAYLIST_DESCRIPTION,
     })
 
     // Set image
@@ -337,7 +337,7 @@ const crawl = async (user, nbDays) => {
     let message = 'An unexpected error occurred during data retrieval.'
     if (crawlErr.error === 'invalid_grant') {
       message += ` ${crawlErr.error_description}.`
-    } else if (config.discussion) {
+    } else if (config.DISCUSSION) {
       message += ' Ask for support at spotify.yoannboyer.com/ask'
     }
 
