@@ -17,7 +17,7 @@
     "@seald-io/nedb": "^4.1.2",
     "axios": "^1.15.2",
     "cookie-parser": "^1.4.7",
-    "cron": "^3.5.0",
+    "cron": "^4.4.0",
     "envalid": "^8.1.1",
     "express": "^4.22.1",
     "morgan": "^1.10.1"
