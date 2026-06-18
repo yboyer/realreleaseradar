@@ -1,11 +1,5 @@
 {
-  "extends": [ "config:recommended",  ":disableRateLimiting"],
-  "rangeStrategy": "bump",
-  "ignoreTests": true,
-  "packageRules": [
-    {
-      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
-      "automerge": true
-    }
+  "extends": [
+    "github>yboyer/renovate-config"
   ]
 }
