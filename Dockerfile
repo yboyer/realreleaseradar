@@ -4,7 +4,7 @@ COPY package.json package-lock.json /tmp/
 RUN jq 'del(.version)' < /tmp/package.json > /app/package.json
 RUN jq 'del(.packages."".version) | del(.version)' < /tmp/package-lock.json > /app/package-lock.json
 
-FROM node:24.17.0-alpine@sha256:156b55f92e98ccd5ef49578a8cea0df4679826564bad1c9d4ef04462b9f0ded6 AS build-front
+FROM node:24.18.0-alpine@sha256:a0b9bf06e4e6193cf7a0f58816cc935ff8c2a908f81e6f1a95432d679c54fbfd AS build-front
 EXPOSE 3000
 WORKDIR /app
 RUN apk --no-cache add make build-base
@@ -18,13 +18,13 @@ COPY front/index.html ./
 COPY front/src ./src
 RUN npm run build
 
-FROM node:24.17.0-alpine@sha256:156b55f92e98ccd5ef49578a8cea0df4679826564bad1c9d4ef04462b9f0ded6 AS production-deps
+FROM node:24.18.0-alpine@sha256:a0b9bf06e4e6193cf7a0f58816cc935ff8c2a908f81e6f1a95432d679c54fbfd AS production-deps
 WORKDIR /app
 RUN apk --no-cache add python3 make build-base
 COPY --from=packages /app/package.json /app/package-lock.json /app/
 RUN npm ci --omit=dev
 
-FROM node:24.17.0-alpine@sha256:156b55f92e98ccd5ef49578a8cea0df4679826564bad1c9d4ef04462b9f0ded6
+FROM node:24.18.0-alpine@sha256:a0b9bf06e4e6193cf7a0f58816cc935ff8c2a908f81e6f1a95432d679c54fbfd
 EXPOSE 3000
 ENV NODE_ENV=production
 WORKDIR /app
