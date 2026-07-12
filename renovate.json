@@ -1,5 +1,3 @@
 {
-  "extends": [
-    "github>yboyer/renovate-config"
-  ]
+  "extends": ["github>yboyer/renovate-config"]
 }

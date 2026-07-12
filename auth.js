@@ -191,7 +191,7 @@ app.get(
 )
 
 const getAction = (state, hash) =>
-  Object.keys(actions).filter(action => encrypt({ key: state, value: action }) === hash)[0]
+  Object.keys(actions).find(action => encrypt({ key: state, value: action }) === hash)
 
 app.get('/callback', async (req, res) => {
   const code = req.query.code || null
