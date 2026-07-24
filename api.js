@@ -51,6 +51,7 @@ module.exports = class API {
             case 500:
             case 501:
             case 502:
+            case 503:
             case 504: {
               const ms = Number(err.response.headers['retry-after']) * 1e3 + 1e3 || DEFAULT_TIMEOUT
               console.log(`Waiting ${ms / 1e3} second (retries left: ${updatedConfig.retries})`)
