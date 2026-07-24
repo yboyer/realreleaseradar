@@ -248,7 +248,7 @@ app.get('/ask', (_req, res) => {
 
 app.use(express.static('static'))
 
-app.get('*', (_req, res) => {
+app.get('/{*splat}', (_req, res) => {
   res.redirect('/')
 })
 
