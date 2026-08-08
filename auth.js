@@ -229,6 +229,12 @@ app.get('/done/:code', (req, res) => {
 })
 
 const adminRouter = express.Router()
+adminRouter.use((req, res, next) => {
+  if (req.headers['x-admin-key'] !== config.ADMIN_KEY) {
+    return res.sendStatus(403)
+  }
+  next()
+})
 adminRouter.get('/crawl/:userId', (req, res) => {
   app.emitter.emit('crawl', req.params.userId, req.query.nbDays)
   return res.redirect(`/done/${encrypt({ value: 1 })}`)
@@ -237,7 +243,7 @@ adminRouter.get('/reset/:userId', (req, res) => {
   app.emitter.emit('reset', req.params.userId, req.query.nbDays)
   return res.redirect(`/done/${encrypt({ value: 1 })}`)
 })
-app.use(`/admin/${config.ADMIN_KEY}`, adminRouter)
+app.use('/admin', adminRouter)
 
 app.get('/ask', (_req, res) => {
   if (!config.DISCUSSION) {
