@@ -3,16 +3,15 @@ name: Security Scan
 on:
   workflow_dispatch:
   push:
-    branches: [master]
+    branches: [master, main]
   pull_request:
-    branches: [master]
+    branches: [master, main]
   schedule:
     - cron: "0 6 * * 1"
 
-permissions:
-  contents: read
-  security-events: write
-
 jobs:
   trivy:
-    uses: yboyer/ci-templates/.github/workflows/trivy.yml@master
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: yboyer/ci-templates/trivy@master
