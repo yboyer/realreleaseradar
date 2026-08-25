@@ -3,6 +3,7 @@ const express = require('express')
 const morgan = require('morgan')
 const axios = require('axios')
 const cookieParser = require('cookie-parser')
+const csurf = require('csurf')
 const EventEmitter = require('node:events')
 
 const usersDb = require('./users/db')
@@ -18,7 +19,7 @@ const salt = randomString()
 const encrypt = ({ key, value }) =>
   crypto
     .createHmac('sha512', key + salt)
-    .update(`${value}`)
+    .update(String(value))
     .digest('hex')
     .slice(0, 7)
 
@@ -68,6 +69,7 @@ const getTokens = async code => {
 
 const app = express()
 app.use(cookieParser())
+app.use(csurf({ cookie: true }))
 app.use(
   morgan(':date[iso] :remote-addr :method :url HTTP/:http-version :status - :response-time ms')
 )
