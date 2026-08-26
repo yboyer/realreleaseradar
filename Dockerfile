@@ -31,6 +31,8 @@ WORKDIR /app
 RUN apk --no-cache add curl
 COPY --from=production-deps /app/node_modules /app/node_modules
 COPY --from=build-front /app/dist /app/static
+COPY --chown=node:node . .
+RUN mkdir -p /src/users/dbs && chown -R node:node /src
 VOLUME ["/src/users/dbs"]
-COPY . .
+USER node
 CMD node index.js
