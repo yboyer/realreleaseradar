@@ -23,6 +23,6 @@
     "morgan": "1.12.1"
   },
   "devDependencies": {
-    "@yboyer/config": "1.5.1"
+    "@yboyer/config": "1.5.2"
   }
 }
