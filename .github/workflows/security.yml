@@ -22,4 +22,4 @@ jobs:
       - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - uses: yboyer/actions/trivy-scan@02bfc0278819bd2b80e9c957ee891bf037565858 # v1.3.0
+      - uses: yboyer/actions/trivy-scan@5c400ee78c4b0775652ddecebe811c238233affe # v1.4.0
