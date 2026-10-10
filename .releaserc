@@ -11,6 +11,13 @@
         "message": "chore(release): ${nextRelease.version}"
       }
     ],
-    ["@semantic-release/github", { "successComment": false, "releasedLabels": false }]
+    [
+      "@semantic-release/github",
+      {
+        "failComment": false,
+        "successComment": false,
+        "releasedLabels": false
+      }
+    ]
   ]
 }
