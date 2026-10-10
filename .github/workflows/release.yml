@@ -2,43 +2,46 @@ name: Release
 
 on:
   workflow_dispatch:
-    inputs:
-      release_type:
-        description: Version increment
-        required: true
-        default: patch
-        type: choice
-        options: [major, minor, patch, premajor, preminor, prepatch, prerelease]
-  push:
-    tags:
-      - 'v*.*.*'
+
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
-  bump:
-    if: github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
+  release:
     permissions:
       contents: write
+    name: release
+    runs-on: ubuntu-latest
     outputs:
-      tag: ${{ steps.bump.outputs.tag }}
+      tag: ${{ steps.release.outputs.tag }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - id: bump
-        uses: yboyer/actions/npm-bump-version@5c400ee78c4b0775652ddecebe811c238233affe # v1.4.0
         with:
-          release-type: ${{ inputs.release_type }}
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: '.node-version'
+      - id: release
+        run: |
+          tags_before=$(mktemp)
+          git tag --list | sort > "$tags_before"
+          npx --yes --package=semantic-release@25.0.1 --package=@semantic-release/git@11.0.1 semantic-release
+          tag=$(comm -13 "$tags_before" <(git tag --list | sort))
+          rm "$tags_before"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish:
-    needs: bump
-    # Run for pushed tags, or after a successful manual bump.
-    if: ${{ always() && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && needs.bump.result == 'success')) }}
+    needs: release
+    if: ${{ needs.release.outputs.tag != '' }}
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
       packages: write
     env:
-      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && needs.bump.outputs.tag || github.ref_name }}
-      RELEASE_REF: ${{ github.event_name == 'workflow_dispatch' && needs.bump.outputs.tag || github.ref }}
+      RELEASE_REF: refs/tags/${{ needs.release.outputs.tag }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -54,9 +57,3 @@ jobs:
           image: ghcr.io/yboyer/realreleaseradar
           dockerfile: Dockerfile
           cache: true
-      - name: 🔖 Release
-        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
-        with:
-          tag_name: ${{ env.RELEASE_TAG }}
-          name: ${{ env.RELEASE_TAG }}
-          generate_release_notes: true
