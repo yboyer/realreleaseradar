@@ -23,13 +23,7 @@ jobs:
         with:
           node-version-file: '.node-version'
       - id: release
-        run: |
-          tags_before=$(mktemp)
-          git tag --list | sort > "$tags_before"
-          npx --yes --package=semantic-release@25.0.1 --package=@semantic-release/git@11.0.1 semantic-release
-          tag=$(comm -13 "$tags_before" <(git tag --list | sort))
-          rm "$tags_before"
-          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+        uses: yboyer/actions/semantic-release@fe8fa33acc98bb6728fe9d5bb37663071cfa1463 # v1.5.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
