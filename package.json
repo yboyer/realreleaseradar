@@ -1,6 +1,7 @@
 {
   "name": "realeaseradar",
   "version": "1.14.3",
+  "private": true,
   "description": "",
   "main": "index.js",
   "scripts": {

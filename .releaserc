@@ -1,0 +1,16 @@
+{
+  "branches": ["master", "main"],
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    ["@semantic-release/release-notes-generator", { "writerOpts": { "headerPartial": "" } }],
+    "@semantic-release/npm",
+    [
+      "@semantic-release/git",
+      {
+        "assets": ["package.json", "package-lock.json"],
+        "message": "chore(release): ${nextRelease.version}"
+      }
+    ],
+    ["@semantic-release/github", { "successComment": false, "releasedLabels": false }]
+  ]
+}
