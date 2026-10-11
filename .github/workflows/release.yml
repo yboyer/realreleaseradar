@@ -46,7 +46,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: 🐳 Build and publish
-        uses: yboyer/actions/docker-publish@5c400ee78c4b0775652ddecebe811c238233affe # v1.4.0
+        uses: yboyer/actions/docker-publish@fe8fa33acc98bb6728fe9d5bb37663071cfa1463 # v1.5.0
         with:
           image: ghcr.io/yboyer/realreleaseradar
           dockerfile: Dockerfile
