@@ -9,7 +9,6 @@
       <img v-if="store.dark" src="/logo-dark.svg" class="logo" />
       <h1>Real Release Radar</h1>
       <p>All new releases of your followed artists every Friday</p>
-
     </div>
 
     <div>
@@ -24,22 +23,22 @@
 </template>
 
 <style scoped>
-.buttonContainer {
-  display: flex;
-  align-items: center;
-}
-.logo {
-  height: 3em;
-  margin-bottom: 0.5em;
-}
-.logo-little {
-  height: 1em;
-  margin-right: .3em;
-}
-.container {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-evenly;
-}
+  .buttonContainer {
+    display: flex;
+    align-items: center;
+  }
+  .logo {
+    height: 3em;
+    margin-bottom: 0.5em;
+  }
+  .logo-little {
+    height: 1em;
+    margin-right: 0.3em;
+  }
+  .container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+  }
 </style>

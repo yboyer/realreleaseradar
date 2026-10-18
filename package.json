@@ -5,8 +5,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "build": "vp -C front run build",
+    "dev:build": "vp -C front run dev:build",
     "start": "NODE_ENV=development node --env-file=.env index",
-    "lint": "biome check . "
+    "lint": "vp run check",
+    "prepare": "vp config"
   },
   "keywords": [],
   "author": {
@@ -24,7 +27,14 @@
     "morgan": "1.12.1"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.15",
-    "@yboyer/config": "1.5.2"
-  }
+    "@yboyer/config": "2.1.1",
+    "vite-plus": "1.2.0"
+  },
+  "overrides": {
+    "vite": "npm:@voidzero-dev/vite-plus-core@1.2.0",
+    "vitest": "5.0.4"
+  },
+  "workspaces": [
+    "front"
+  ]
 }

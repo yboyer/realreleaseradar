@@ -3,3 +3,4 @@ users/*
 !users/db.js
 .env
 static/
+dist/
