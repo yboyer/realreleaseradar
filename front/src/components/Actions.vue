@@ -52,61 +52,62 @@
 </template>
 
 <style scoped>
-.close {
-  background-color: #FFF;
-  height: 2em;
-  width: 2em;
-  font-size: 0.8em;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: absolute;
-  right: 10px;
-  top: 10px;
-  border: 1px solid rgb(0 0 0 / 30%);
-  cursor: pointer;
-  color: #141414;
-}
-.avatar {
-  height: 50px;
-  width: 50px;
-  border-radius: 50%;
-  margin-bottom: 0.5em;
-  /* border: 1px solid #FFF; */
-  background-color: rgb(0 0 0 / 10%);
-}
-.container {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-.content {
-  margin-top: 2em;
-}
-.button {
-  background-color: #141414;
-  color: #ffffffde;
-}
-.button.subscribe {
-  background-color: transparent;
-  color: #141414;
-  border: 1px solid;
-}
-.divider {
-  margin: 2em 0;
-}
-@media (prefers-color-scheme: dark) {
-  .button, .close {
-    background-color: #ffffffde;
+  .close {
+    background-color: #fff;
+    height: 2em;
+    width: 2em;
+    font-size: 0.8em;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    border: 1px solid rgb(0 0 0 / 30%);
+    cursor: pointer;
     color: #141414;
   }
-
-  .button.subscribe {
-    color: #ffffffde;
-    /* background-color: #141414; */
+  .avatar {
+    height: 50px;
+    width: 50px;
+    border-radius: 50%;
+    margin-bottom: 0.5em;
+    /* border: 1px solid #FFF; */
+    background-color: rgb(0 0 0 / 10%);
+  }
+  .container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .content {
+    margin-top: 2em;
+  }
+  .button {
+    background-color: #141414;
     color: #ffffffde;
   }
-}
+  .button.subscribe {
+    background-color: transparent;
+    color: #141414;
+    border: 1px solid;
+  }
+  .divider {
+    margin: 2em 0;
+  }
+  @media (prefers-color-scheme: dark) {
+    .button,
+    .close {
+      background-color: #ffffffde;
+      color: #141414;
+    }
+
+    .button.subscribe {
+      color: #ffffffde;
+      /* background-color: #141414; */
+      color: #ffffffde;
+    }
+  }
 </style>

@@ -19,7 +19,9 @@
   if ($cookies?.isKey('user')) {
     try {
       store.user = JSON.parse(atob($cookies.get('user')))
-    } catch {}
+    } catch {
+      // Ignore invalid user cookies and keep the logged-out state.
+    }
   }
 </script>
 
@@ -28,6 +30,4 @@
   <Actions v-else />
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>

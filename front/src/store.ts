@@ -10,7 +10,7 @@ type Store = {
     subscribed: boolean
   }
   dark: boolean
-  // biome-ignore lint/suspicious/noExplicitAny: needed
+  // oxlint-disable-next-line typescript/no-explicit-any -- Store supports dynamic properties.
 } & Record<string, any>
 
 export const store = reactive<Store>({

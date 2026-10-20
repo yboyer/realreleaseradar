@@ -33,7 +33,7 @@ body {
   right: 0;
   width: 134px;
   height: 128px;
-  background-image: url("./assets/top.png");
+  background-image: url('./assets/top.png');
   background-size: cover;
 }
 #content {
