@@ -17,10 +17,6 @@ export default defineConfig(({ mode }) => {
           command: ['vue-tsc --noEmit', 'vp check'],
           cache: false,
         },
-        'dev:build': {
-          command: 'vp build --mode development',
-          cache: false,
-        },
       },
     },
   }

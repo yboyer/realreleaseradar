@@ -6,6 +6,7 @@
   "scripts": {
     "build": "vp build",
     "dev": "vp dev",
+    "dev:build": "vp build --mode development",
     "preview": "vp preview",
     "lint": "vp run check"
   },
