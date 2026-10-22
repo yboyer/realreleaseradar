@@ -3,11 +3,10 @@
   "version": "1.14.3",
   "private": true,
   "description": "",
-  "main": "index.js",
   "scripts": {
-    "build": "vp -C front run build",
-    "dev:build": "vp -C front run dev:build",
-    "start": "NODE_ENV=development node --env-file=.env index",
+    "build": "vp run frontend#build",
+    "dev:build": "vp run frontend#dev:build",
+    "start": "vp run backend#start",
     "lint": "vp run check",
     "prepare": "vp config"
   },
@@ -17,15 +16,6 @@
     "url": "https://yoannboyer.com"
   },
   "license": "MIT",
-  "dependencies": {
-    "@seald-io/nedb": "4.1.2",
-    "axios": "1.20.0",
-    "cookie-parser": "1.4.7",
-    "cron": "4.4.0",
-    "envalid": "8.2.0",
-    "express": "5.3.0",
-    "morgan": "1.12.1"
-  },
   "devDependencies": {
     "@yboyer/config": "2.1.2",
     "vite-plus": "1.2.0"
@@ -35,6 +25,6 @@
     "vitest": "5.0.5"
   },
   "workspaces": [
-    "front"
+    "apps/*"
   ]
 }

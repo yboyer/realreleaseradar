@@ -16,15 +16,15 @@ const dbs = {
     if (!this._[user]) {
       this._[user] = {
         artistsDb: new Datastore({
-          filename: `users/dbs/${user}/artists`,
+          filename: path.join(__dirname, 'users/dbs', user, 'artists'),
           autoload: true,
         }),
         albumsDb: new Datastore({
-          filename: `users/dbs/${user}/albums`,
+          filename: path.join(__dirname, 'users/dbs', user, 'albums'),
           autoload: true,
         }),
         tracksDb: new Datastore({
-          filename: `users/dbs/${user}/tracks`,
+          filename: path.join(__dirname, 'users/dbs', user, 'tracks'),
           autoload: true,
         }),
       }
@@ -202,7 +202,7 @@ class SpotifyCrawler {
 
     // Set image
     try {
-      const filepath = path.join(__dirname, '.github', 'large.jpg')
+      const filepath = path.join(__dirname, '../../.github/large.jpg')
       const img = await fs.readFile(filepath, { encoding: 'base64' })
       await this.request.put(`users/${this.username}/playlists/${playlistId}/images`, img, {
         headers: {

@@ -7,7 +7,7 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [vue()],
     build: {
-      outDir: watch ? '../static' : 'dist',
+      outDir: watch ? '../backend/static' : 'dist',
       emptyOutDir: true,
       watch: watch ? {} : null,
     },

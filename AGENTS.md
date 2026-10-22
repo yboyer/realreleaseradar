@@ -1,35 +1,35 @@
 # Real Release Radar
 
 Node.js/Express backend that updates Spotify playlists, with a Vue frontend in
-`front/`. Read [README.md](README.md) for setup and local development.
+`apps/frontend/`. Read [README.md](README.md) for setup and local development.
 
 ## Repository layout
 
-- `index.js`: Spotify crawler and production Friday schedule.
-- `auth.js`, `api.js`, `tools.js`: Express routes, Spotify authentication and API helpers.
-- `config.js`: environment variables and defaults.
-- `users/`: NeDB access; `users/dbs/` contains persistent user data and tokens.
-- `front/src/`: Vue application.
-- `static/`: generated frontend served by Express; do not edit directly.
+- `apps/backend/index.js`: Spotify crawler and production Friday schedule.
+- `apps/backend/auth.js`, `apps/backend/api.js`, `apps/backend/tools.js`: Express routes, Spotify authentication and API helpers.
+- `apps/backend/config.js`: environment variables and defaults.
+- `apps/backend/users/`: NeDB access; `apps/backend/users/dbs/` contains persistent user data and tokens.
+- `apps/frontend/src/`: Vue application.
+- `apps/backend/static/`: generated frontend served by Express; do not edit directly.
 - `Dockerfile`, `.github/workflows/`: container build and automation.
 
 ## Project commands
 
-The backend stays at the root; `front/` is an npm workspace. Run `npm ci`
+The backend and frontend are npm workspaces in `apps/backend/` and `apps/frontend/`. Run `npm ci`
 once at the root. Both packages share the root `package-lock.json`.
 Use npm scripts and the local Vite+ executable; no global `vp` is required. Dependency versions are defined in
 the package manifests and root lockfile; the Docker runtime is defined in `Dockerfile`.
 
 From the repository root:
 
-- `npm start`: start the development backend using `.env`.
-- `npm run dev:build`: watch and build the frontend into `static/` for the backend.
-- `npm run build`: build the frontend into `front/dist/`.
+- `npm start`: start the development backend using `apps/backend/.env`.
+- `npm run dev:build`: watch and build the frontend into `apps/backend/static/` for the backend.
+- `npm run build`: build the frontend into `apps/frontend/dist/`.
 - `npm run lint`: check formatting, lint, and Vue types across the project.
 
-Use `npm run lint` for validation; it includes the explicit `vue-tsc` task. There are currently no test files. From `front/`, `npm run lint` checks only the frontend.
+Use `npm run lint` for validation; it includes the explicit `vue-tsc` task. There are currently no test files. From `apps/frontend/`, `npm run lint` checks only the frontend.
 
-Keep `.env` and `users/dbs/` out of commits; they contain secrets and user data.
+Keep `apps/backend/.env` and `apps/backend/users/dbs/` out of commits; they contain secrets and user data.
 
 <!--VITE PLUS START-->
 

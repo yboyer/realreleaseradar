@@ -1,7 +1,11 @@
+*
+!package.json
+!package-lock.json
+!apps/**
+!.github/large.jpg
+
 **/node_modules
-.github/workflows
-.github/screen.png
-Dockerfile
-.git
-users/dbs
-static
+**/.env*
+**/users/dbs
+**/static
+**/dist
