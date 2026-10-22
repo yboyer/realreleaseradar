@@ -16,8 +16,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "6.0.10",
-    "typescript": "6.0.3",
-    "vue-tsc": "3.3.13",
-    "vite-plus": "1.2.0"
+    "vite-plus": "1.2.0",
+    "vue-tsc": "3.3.13"
   }
 }
