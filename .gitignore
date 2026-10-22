@@ -1,6 +1,6 @@
 node_modules/
-users/*
-!users/db.js
+apps/backend/users/*
+!apps/backend/users/db.js
 .env
 static/
 dist/

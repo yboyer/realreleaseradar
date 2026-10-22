@@ -32,25 +32,29 @@ docker run --name releaseradar \
 
 ## Development
 
+- `apps/backend/`: Express server, Spotify crawler, configuration and local data.
+- `apps/frontend/`: Vue application and frontend build.
+- Root: workspace scripts, shared tooling, lockfile and Docker build.
+
 Install Node.js and npm, then install dependencies from the repository root.
-`front/` is an npm workspace with a shared root lockfile. Vite+ is installed locally;
+Both applications in `apps/` are npm workspaces with a shared root lockfile. Vite+ is installed locally;
 no global `vp` installation is required:
 
 ```shell
 npm ci
 ```
 
-Copy the environment template in the repository root:
+Copy the environment template into the backend workspace:
 
 ```shell
-cp .env.template .env
+cp apps/backend/.env.template apps/backend/.env
 ```
 
-Fill in `CLIENT_ID` and `CLIENT_SECRET` in `.env` using your Spotify app credentials.
+Fill in `CLIENT_ID` and `CLIENT_SECRET` in `apps/backend/.env` using your Spotify app credentials.
 
 Register the same redirect URI in your Spotify app settings. Environment variables
-and defaults are defined in `config.js`. Keep `.env` and the persistent user data
-in `users/dbs/` out of commits.
+and defaults are defined in `apps/backend/config.js`. Keep `apps/backend/.env` and the persistent user data
+in `apps/backend/users/dbs/` out of commits.
 
 For local development with Spotify authentication, run these commands in two
 terminals from the repository root:
@@ -66,20 +70,20 @@ npm run dev:build
 ```
 
 Once the frontend build completes, open `http://localhost:3000`. Express serves the
-generated files in `static/`. Automatic Friday updates run only when
+generated files in `apps/backend/static/`. Automatic Friday updates run only when
 `NODE_ENV=production`; `npm start` uses development mode.
 
 To run the frontend Vite development server independently, use `npm run dev` from
-`front/`. It has no backend proxy configured, so use the setup above for Spotify
+`apps/frontend/`. It has no backend proxy configured, so use the setup above for Spotify
 authentication and backend routes.
 
 From the repository root, run `npm run lint` to check formatting,
-lint, and Vue types across the project. From `front/`, the same commands check only
+lint, and Vue types across the project. From `apps/frontend/`, the same commands check only
 the frontend. This includes the explicit Vue type-checking task.
 There are currently no test files.
 
 From the repository root, run `npm run build` to build the frontend
-into `front/dist/`, or run `npm run build` from `front/`. npm scripts automatically
+into `apps/frontend/dist/`, or run `npm run build` from `apps/frontend/`. npm scripts automatically
 use the local Vite+ executable.
 
 ## License

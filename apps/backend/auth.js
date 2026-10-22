@@ -1,4 +1,5 @@
 const crypto = require('node:crypto')
+const path = require('node:path')
 const express = require('express')
 const morgan = require('morgan')
 const axios = require('axios')
@@ -246,7 +247,7 @@ app.get('/ask', (_req, res) => {
   res.redirect(config.DISCUSSION)
 })
 
-app.use(express.static('static'))
+app.use(express.static(path.join(__dirname, 'static')))
 
 app.get('/{*splat}', (_req, res) => {
   res.redirect('/')

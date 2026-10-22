@@ -16,7 +16,7 @@ export default defineConfig(
           },
         },
         {
-          files: ['front/src/**'],
+          files: ['apps/frontend/src/**'],
           env: { browser: true },
           globals: { defineProps: 'readonly' },
         },
@@ -25,7 +25,8 @@ export default defineConfig(
     run: {
       tasks: {
         check: {
-          command: ['vp -C front exec vue-tsc --noEmit', 'vp check'],
+          command: 'vp check',
+          dependsOn: ['frontend#check'],
           cache: false,
         },
       },

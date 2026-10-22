@@ -1,7 +1,6 @@
-import { createApp } from 'vue'
-
 import './style.css'
 
+import { createApp } from 'vue'
 import VueCookies from 'vue-cookies'
 
 import App from './App.vue'
