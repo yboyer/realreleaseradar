@@ -27,7 +27,7 @@
     "morgan": "1.12.1"
   },
   "devDependencies": {
-    "@yboyer/config": "2.1.1",
+    "@yboyer/config": "2.1.2",
     "vite-plus": "1.2.0"
   },
   "overrides": {
