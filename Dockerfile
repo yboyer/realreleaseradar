@@ -35,8 +35,8 @@ COPY --from=production-deps /app/node_modules /app/node_modules
 COPY --from=build-front /app/apps/frontend/dist /app/apps/backend/static
 COPY --chown=node:node apps/backend ./apps/backend
 COPY .github/large.jpg ./.github/large.jpg
-RUN mkdir -p /src/users/dbs && ln -s /src/users/dbs /app/apps/backend/users/dbs && chown -R node:node /src
-VOLUME ["/src/users/dbs"]
+RUN mkdir -p /app/apps/backend/users/dbs && chown -R node:node /app/apps/backend/users/dbs
+VOLUME ["/app/apps/backend/users/dbs"]
 USER node
 WORKDIR /app/apps/backend
 CMD ["node", "index.js"]
