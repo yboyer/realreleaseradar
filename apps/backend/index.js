@@ -2,6 +2,7 @@ const Datastore = require('@seald-io/nedb')
 const { CronJob } = require('cron')
 const config = require('./config')
 const usersDb = require('./users/db')
+const clearDb = require('./clear-db')
 const auth = require('./auth')
 const path = require('node:path')
 const fs = require('node:fs/promises')
@@ -76,9 +77,7 @@ class SpotifyCrawler {
   }
 
   async reset() {
-    await Promise.all(
-      [this.artistsDb, this.albumsDb, this.tracksDb].map(e => e.removeAsync({}, { multi: true }))
-    )
+    await Promise.all([this.artistsDb, this.albumsDb, this.tracksDb].map(clearDb))
   }
 
   async drop() {
@@ -91,7 +90,7 @@ class SpotifyCrawler {
   async getArtistIds(last) {
     this.log(`Getting artists`)
     if (!last) {
-      await this.artistsDb.removeAsync({}, { multi: true })
+      await clearDb(this.artistsDb)
     }
     const artistIds = (await this.artistsDb.findAsync()).map(getIds)
 
@@ -374,12 +373,16 @@ if (process.env.NODE_ENV === 'production') {
 auth.emitter.on('crawl', crawl)
 auth.emitter.on('delete', id => {
   const crawler = new SpotifyCrawler(id)
-  return crawler.reset()
+  return crawler.reset().catch(error => crawler.error(error))
 })
 auth.emitter.on('reset', async (id, nbDays) => {
   const crawler = new SpotifyCrawler(id)
-  await crawler.reset()
-  return crawl(id, nbDays)
+  try {
+    await crawler.reset()
+    await crawl(id, nbDays)
+  } catch (error) {
+    crawler.error(error)
+  }
 })
 
 auth.listen(3000, () => console.log(`Listening with admin key "${config.ADMIN_KEY}"...`))
