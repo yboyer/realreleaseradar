@@ -14,21 +14,15 @@
     $cookies?.set('user', '')
     location.reload()
   }
-  function subscribe() {
-    location.href = '/subscribe'
-  }
-  function unsubscribe() {
-    location.href = '/unsubscribe'
-  }
 </script>
 
 <template>
   <div class="container" v-if="store.user">
-    <div class="close" title="logout" @click="logout()">
-      <div>✕</div>
-    </div>
+    <button aria-label="Log out" class="close" title="logout" type="button" @click="logout()">
+      <span aria-hidden="true">✕</span>
+    </button>
     <div>
-      <img class="avatar" v-bind:src="store.user.image" />
+      <img alt="" class="avatar" :src="store.user.image" />
       <h1>Hi {{ store.user.name }}!</h1>
       <span>{{ store.user.artists }} followed artists</span>
       <hr class="divider" />
@@ -45,8 +39,8 @@
 
     <div>
       <hr class="divider" />
-      <a class="button" v-if="store.user.subscribed" @click="unsubscribe()">unsubscribe to RRR</a>
-      <a class="button subscribe" v-else @click="subscribe()">subscribe to RRR</a>
+      <a class="button" href="/unsubscribe" v-if="store.user.subscribed">unsubscribe to RRR</a>
+      <a class="button subscribe" href="/subscribe" v-else>subscribe to RRR</a>
     </div>
   </div>
 </template>
@@ -61,6 +55,8 @@
     justify-content: center;
     width: 2em;
     height: 2em;
+    padding: 0;
+    font-family: inherit;
     font-size: 0.8em;
     color: #141414;
     cursor: pointer;
@@ -105,8 +101,6 @@
     }
 
     .button.subscribe {
-      color: #ffffffde;
-      /* background-color: #141414; */
       color: #ffffffde;
     }
   }

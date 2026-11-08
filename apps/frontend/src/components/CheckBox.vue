@@ -1,4 +1,7 @@
 <script lang="ts" setup>
+  import { useId } from 'vue'
+
+  const inputId = useId()
   const props = defineProps({
     onchange: Function,
     label: String,
@@ -16,12 +19,18 @@
 <template>
   <div class="root">
     <div class="container">
-      <input id="switch" type="checkbox" :checked="value" :disabled="disabled" :onchange="toggle" />
-      <label class="main" for="switch"></label>
+      <input
+        type="checkbox"
+        :checked="value"
+        :disabled="disabled"
+        :id="inputId"
+        :onchange="toggle"
+      />
+      <label class="main" :for="inputId">{{ label }}</label>
     </div>
     <div class="labels">
-      <label for="switch">{{ label }}</label>
-      <label class="description" for="switch">{{ description }}</label>
+      <label :for="inputId">{{ label }}</label>
+      <label class="description" :for="inputId">{{ description }}</label>
     </div>
   </div>
 </template>
@@ -36,10 +45,10 @@
     margin-right: 0.7em;
   }
   input[type="checkbox"] {
-    display: none;
-    visibility: hidden;
-    width: 0;
-    height: 0;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
   }
 
   .labels {
@@ -67,6 +76,11 @@
     background: #fff;
     border-radius: 17px;
     transition: 0.3s;
+  }
+
+  input:focus-visible + label.main {
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
   }
 
   input:checked + label.main {

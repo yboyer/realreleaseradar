@@ -367,7 +367,7 @@ const start = async () => {
 }
 
 if (process.env.NODE_ENV === 'production') {
-  new CronJob('0 0 * * 5', start, null, true)
+  CronJob.from({ cronTime: '0 0 * * 5', onTick: start, start: true })
 }
 
 auth.emitter.on('crawl', crawl)
