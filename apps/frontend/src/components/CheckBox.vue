@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
   const props = defineProps({
     onchange: Function,
     label: String,
@@ -16,12 +16,12 @@
 <template>
   <div class="root">
     <div class="container">
-      <input type="checkbox" :disabled="disabled" :checked="value" id="switch" :onchange="toggle" />
+      <input id="switch" type="checkbox" :checked="value" :disabled="disabled" :onchange="toggle" />
       <label class="main" for="switch"></label>
     </div>
     <div class="labels">
       <label for="switch">{{ label }}</label>
-      <label for="switch" class="description">{{ description }}</label>
+      <label class="description" for="switch">{{ description }}</label>
     </div>
   </div>
 </template>
@@ -35,11 +35,11 @@
     display: inline-block;
     margin-right: 0.7em;
   }
-  input[type='checkbox'] {
-    height: 0;
-    width: 0;
-    visibility: hidden;
+  input[type="checkbox"] {
     display: none;
+    visibility: hidden;
+    width: 0;
+    height: 0;
   }
 
   .labels {
@@ -47,23 +47,23 @@
   }
 
   label.main {
-    cursor: pointer;
-    text-indent: -9999px;
+    position: relative;
+    display: block;
     width: 34px;
     height: 21px;
+    text-indent: -9999px;
+    cursor: pointer;
     background: grey;
-    display: block;
     border-radius: 20px;
-    position: relative;
   }
 
   label.main:after {
-    content: '';
     position: absolute;
     top: 2px;
     left: 2px;
     width: 17px;
     height: 17px;
+    content: "";
     background: #fff;
     border-radius: 17px;
     transition: 0.3s;
@@ -85,7 +85,7 @@
   .description {
     display: block;
     font-size: 0.8em;
-    opacity: 0.6;
     line-height: 0.9em;
+    opacity: 0.6;
   }
 </style>

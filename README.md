@@ -1,5 +1,8 @@
 <p align="center">
-    <img height="350" src="https://raw.githubusercontent.com/yboyer/realreleaseradar/master/.github/large.jpg">
+  <img
+    height="350"
+    src="https://raw.githubusercontent.com/yboyer/realreleaseradar/master/.github/large.jpg"
+  />
   <p align="center"><i>Real Release Radar</i> Spotify's playlist</p>
 </p>
 
@@ -21,13 +24,16 @@ docker run --name releaseradar \
   -e CLIENT_ID=$CLIENT_ID \
   -e CLIENT_SECRET=$CLIENT_SECRET \
   -e REDIRECT_URI=$REDIRECT_URI \
-  -v $PWD/releaseradar_data/:/src/users/dbs \
+  -v $PWD/releaseradar_data/:/app/apps/backend/users/dbs \
   -p 3000:3000 \
   ghcr.io/yboyer/realreleaseradar
 ```
 
 <p align="center">
-  <img width="800" src="https://raw.githubusercontent.com/yboyer/realreleaseradar/master/.github/screen.png">
+  <img
+    width="800"
+    src="https://raw.githubusercontent.com/yboyer/realreleaseradar/master/.github/screen.png"
+  />
 </p>
 
 ## Development
@@ -36,12 +42,12 @@ docker run --name releaseradar \
 - `apps/frontend/`: Vue application and frontend build.
 - Root: workspace scripts, shared tooling, lockfile and Docker build.
 
-Install Node.js and npm, then install dependencies from the repository root.
-Both applications in `apps/` are npm workspaces with a shared root lockfile. Vite+ is installed locally;
-no global `vp` installation is required:
+Install the Node.js version from `.node-version` and pnpm from the `packageManager`
+field in `package.json`. Both applications use pnpm workspaces and the shared
+`pnpm-lock.yaml`:
 
 ```shell
-npm ci
+pnpm install --frozen-lockfile
 ```
 
 Copy the environment template into the backend workspace:
@@ -61,30 +67,31 @@ terminals from the repository root:
 
 ```shell
 # Terminal 1: start the backend using .env
-npm start
+pnpm start
 ```
 
 ```shell
 # Terminal 2: build the frontend and rebuild on changes
-npm run dev:build
+pnpm dev:build
 ```
 
 Once the frontend build completes, open `http://localhost:3000`. Express serves the
 generated files in `apps/backend/static/`. Automatic Friday updates run only when
-`NODE_ENV=production`; `npm start` uses development mode.
+`NODE_ENV=production`; `pnpm start` uses development mode.
 
-To run the frontend Vite development server independently, use `npm run dev` from
+To run the frontend Vite development server independently, use `pnpm dev` from
 `apps/frontend/`. It has no backend proxy configured, so use the setup above for Spotify
 authentication and backend routes.
 
-From the repository root, run `npm run lint` to check formatting,
-lint, and Vue types across the project. From `apps/frontend/`, the same commands check only
-the frontend. This includes the explicit Vue type-checking task.
+From the repository root, run `pnpm lint` to apply Biome formatting and safe fixes,
+check code rules, and check Vue types.
+Use `pnpm --filter frontend lint` to check only the frontend.
+`pnpm --filter frontend typecheck` runs `vue-tsc --noEmit`.
 There are currently no test files.
 
-From the repository root, run `npm run build` to build the frontend
-into `apps/frontend/dist/`, or run `npm run build` from `apps/frontend/`. npm scripts automatically
-use the local Vite+ executable.
+Run `pnpm build` to build into `apps/frontend/dist/`.
+`pnpm dev:build` watches changes and builds into `apps/backend/static/`.
+These commands use standalone Vite.
 
 ## License
 

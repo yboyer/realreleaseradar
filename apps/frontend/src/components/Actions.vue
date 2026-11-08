@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
   import type { VueCookies } from 'vue-cookies'
   import { inject } from 'vue'
 
@@ -23,8 +23,8 @@
 </script>
 
 <template>
-  <div v-if="store.user" class="container">
-    <div @click="logout()" class="close" title="logout">
+  <div class="container" v-if="store.user">
+    <div class="close" title="logout" @click="logout()">
       <div>✕</div>
     </div>
     <div>
@@ -34,64 +34,64 @@
       <hr class="divider" />
       <div class="content">
         <CheckBox
-          :disabled="!store.user.subscribed"
-          :value="store.user.includeFeaturing"
-          :onchange="toggleFeaturing"
-          label="Include featurings"
           description="(any change will refresh the playlist)"
+          label="Include featurings"
+          :disabled="!store.user.subscribed"
+          :onchange="toggleFeaturing"
+          :value="store.user.includeFeaturing"
         />
       </div>
     </div>
 
     <div>
       <hr class="divider" />
-      <a v-if="store.user.subscribed" class="button" @click="unsubscribe()">unsubscribe to RRR</a>
-      <a v-else class="button subscribe" @click="subscribe()">subscribe to RRR</a>
+      <a class="button" v-if="store.user.subscribed" @click="unsubscribe()">unsubscribe to RRR</a>
+      <a class="button subscribe" v-else @click="subscribe()">subscribe to RRR</a>
     </div>
   </div>
 </template>
 
 <style scoped>
   .close {
-    background-color: #fff;
-    height: 2em;
-    width: 2em;
-    font-size: 0.8em;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
     position: absolute;
-    right: 10px;
     top: 10px;
-    border: 1px solid rgb(0 0 0 / 30%);
-    cursor: pointer;
+    right: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2em;
+    height: 2em;
+    font-size: 0.8em;
     color: #141414;
+    cursor: pointer;
+    background-color: #fff;
+    border: 1px solid rgb(0 0 0 / 30%);
+    border-radius: 50%;
   }
   .avatar {
-    height: 50px;
     width: 50px;
-    border-radius: 50%;
+    height: 50px;
     margin-bottom: 0.5em;
     /* border: 1px solid #FFF; */
     background-color: rgb(0 0 0 / 10%);
+    border-radius: 50%;
   }
   .container {
-    height: 100%;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    height: 100%;
   }
   .content {
     margin-top: 2em;
   }
   .button {
-    background-color: #141414;
     color: #ffffffde;
+    background-color: #141414;
   }
   .button.subscribe {
-    background-color: transparent;
     color: #141414;
+    background-color: transparent;
     border: 1px solid;
   }
   .divider {
@@ -100,8 +100,8 @@
   @media (prefers-color-scheme: dark) {
     .button,
     .close {
-      background-color: #ffffffde;
       color: #141414;
+      background-color: #ffffffde;
     }
 
     .button.subscribe {

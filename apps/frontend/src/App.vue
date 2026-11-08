@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
   import type { VueCookies } from 'vue-cookies'
   import { inject } from 'vue'
 

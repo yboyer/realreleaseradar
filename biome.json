@@ -1,0 +1,91 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.6.4/schema.json",
+  "extends": [
+    "@yboyer/config/biome.json"
+  ],
+  "linter": {
+    "domains": {
+      "vue": "recommended"
+    }
+  },
+  "overrides": [
+    {
+      "includes": [
+        "apps/backend/**/*.js"
+      ],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": "off"
+          },
+          "correctness": {
+            "noUnusedInstantiation": "off"
+          },
+          "nursery": {
+            "noFloatingPromises": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "apps/frontend/public/*.svg"
+      ],
+      "linter": {
+        "rules": {
+          "a11y": {
+            "noSvgWithoutTitle": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "apps/frontend/src/components/Actions.vue"
+      ],
+      "linter": {
+        "rules": {
+          "a11y": {
+            "noStaticElementInteractions": "off",
+            "useKeyWithClickEvents": "off",
+            "useAltText": "off",
+            "useValidAnchor": "off"
+          },
+          "suspicious": {
+            "noDuplicateProperties": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "apps/frontend/src/components/Home.vue"
+      ],
+      "linter": {
+        "rules": {
+          "a11y": {
+            "useAltText": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "apps/frontend/src/components/CheckBox.vue"
+      ],
+      "linter": {
+        "rules": {
+          "a11y": {
+            "noLabelWithoutControl": "off"
+          }
+        }
+      }
+    }
+  ],
+  "html": {
+    "experimentalFullSupportEnabled": true,
+    "formatter": {
+      "enabled": true
+    }
+  }
+}
