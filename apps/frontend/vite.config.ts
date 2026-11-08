@@ -1,5 +1,5 @@
 import vue from '@vitejs/plugin-vue'
-import { defineConfig } from 'vite-plus'
+import { defineConfig } from 'vite'
 
 export default defineConfig(({ mode }) => {
   const watch = mode === 'development'
@@ -10,14 +10,6 @@ export default defineConfig(({ mode }) => {
       outDir: watch ? '../backend/static' : 'dist',
       emptyOutDir: true,
       watch: watch ? {} : null,
-    },
-    run: {
-      tasks: {
-        check: {
-          command: ['vue-tsc --noEmit', 'vp check'],
-          cache: false,
-        },
-      },
     },
   }
 })

@@ -2,7 +2,7 @@ name: Pull request
 
 on:
   pull_request:
-    branches: [master, main]
+    branches: [ master, main ]
 
 permissions:
   contents: read
@@ -15,10 +15,12 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .node-version
-          cache: npm
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run build
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+        with:
+          cache: true
+      - run: pnpm i --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm build
 
   docker-build:
     runs-on: ubuntu-latest

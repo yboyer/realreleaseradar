@@ -4,11 +4,12 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "build": "vp build",
-    "dev": "vp dev",
-    "dev:build": "vp build --mode development",
-    "preview": "vp preview",
-    "lint": "vp run check"
+    "build": "vite build",
+    "dev": "vite",
+    "dev:build": "vite build --mode development",
+    "preview": "vite preview",
+    "lint": "biome check --write --error-on-warnings . && pnpm typecheck",
+    "typecheck": "vue-tsc --noEmit"
   },
   "dependencies": {
     "vue": "3.5.44",
@@ -18,7 +19,8 @@
     "@tsconfig/node26": "26.0.1",
     "@types/node": "26.6.6",
     "@vitejs/plugin-vue": "6.0.10",
-    "vite-plus": "1.5.0",
-    "vue-tsc": "3.3.14"
+    "vue-tsc": "3.3.14",
+    "vite": "8.3.6",
+    "typescript": "6.0.3"
   }
 }

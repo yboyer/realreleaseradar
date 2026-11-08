@@ -1,0 +1,15 @@
+packages:
+  - apps/backend
+  - apps/frontend
+
+minimumReleaseAge: 4320
+minimumReleaseAgeExclude:
+  - '@yboyer/config@2.4.0'
+saveExact: true
+
+allowBuilds:
+  esbuild: true
+  fsevents: false
+
+overrides:
+  'express@5.3.0>body-parser': 2.4.0

@@ -1,12 +1,12 @@
-<script setup lang="ts">
+<script lang="ts" setup>
   import { store } from '../store'
 </script>
 
 <template>
   <div class="container">
     <div>
-      <img v-if="!store.dark" src="/logo-light.svg" class="logo" />
-      <img v-if="store.dark" src="/logo-dark.svg" class="logo" />
+      <img alt="" class="logo" src="/logo-light.svg" v-if="!store.dark" />
+      <img alt="" class="logo" src="/logo-dark.svg" v-if="store.dark" />
       <h1>Real Release Radar</h1>
       <p>All new releases of your followed artists every Friday</p>
     </div>
@@ -14,7 +14,7 @@
     <div>
       <a class="button" href="/connect">
         <span class="buttonContainer">
-          <img src="/logo-light.svg" class="logo-little" />
+          <img alt="" class="logo-little" src="/logo-light.svg" />
           <span>Spotify Connect</span>
         </span>
       </a>
@@ -36,9 +36,9 @@
     margin-right: 0.3em;
   }
   .container {
-    height: 100%;
     display: flex;
     flex-direction: column;
     justify-content: space-evenly;
+    height: 100%;
   }
 </style>

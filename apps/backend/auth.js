@@ -121,7 +121,7 @@ const actions = {
       },
       { upsert: true }
     )
-    setCookieAndSend(res, user.id)
+    return setCookieAndSend(res, user.id)
   },
 
   async subscribe({ user, access_token, refresh_token, res }) {
@@ -136,7 +136,7 @@ const actions = {
       app.emitter.emit('crawl', user.id)
     }
 
-    setCookieAndSend(res, user.id)
+    return setCookieAndSend(res, user.id)
   },
 
   async unsubscribe({ user, res }) {
@@ -145,7 +145,7 @@ const actions = {
       app.emitter.emit('delete', user.id)
     }
 
-    setCookieAndSend(res, user.id)
+    return setCookieAndSend(res, user.id)
   },
 
   async toggleFeaturing({ user, res }) {
@@ -160,7 +160,7 @@ const actions = {
     await usersDb.updateAsync({ _id: user.id }, { $set: { appears_on: enabled } })
     app.emitter.emit('reset', user.id, 7)
 
-    setCookieAndSend(res, user.id)
+    return setCookieAndSend(res, user.id)
   },
 }
 
