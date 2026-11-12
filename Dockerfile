@@ -7,7 +7,7 @@ COPY apps/frontend/package.json /app/apps/frontend/package.json
 COPY apps/backend/package.json /app/apps/backend/package.json
 RUN jq 'del(.version)' < /tmp/package.json > /app/package.json
 
-FROM node:26.13.0-alpine@sha256:8996bb5821d62a8fd9bb27c1cb07462f3fdce6e47d640c6a881ead0b064ce216 AS build-front
+FROM node:26.13.1-alpine@sha256:6bd9ab43c0ec0190ca7b2d193906cb8b7edf6e7f4afa43ddeccd6452710bffb5 AS build-front
 EXPOSE 3000
 WORKDIR /app
 RUN apk --no-cache add make build-base
@@ -19,7 +19,7 @@ RUN pnpm install --frozen-lockfile --ignore-scripts
 COPY apps/frontend ./apps/frontend
 RUN pnpm build
 
-FROM node:26.13.0-alpine@sha256:8996bb5821d62a8fd9bb27c1cb07462f3fdce6e47d640c6a881ead0b064ce216 AS production-deps
+FROM node:26.13.1-alpine@sha256:6bd9ab43c0ec0190ca7b2d193906cb8b7edf6e7f4afa43ddeccd6452710bffb5 AS production-deps
 WORKDIR /app
 RUN apk --no-cache add python3 make build-base
 COPY --from=deps /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml /app/
@@ -28,7 +28,7 @@ COPY --from=deps /app/apps/backend/package.json ./apps/backend/package.json
 RUN npm install --global "$(node -p "require('./package.json').packageManager")"
 RUN pnpm --filter backend install --prod --frozen-lockfile --ignore-scripts
 
-FROM node:26.13.0-alpine@sha256:8996bb5821d62a8fd9bb27c1cb07462f3fdce6e47d640c6a881ead0b064ce216
+FROM node:26.13.1-alpine@sha256:6bd9ab43c0ec0190ca7b2d193906cb8b7edf6e7f4afa43ddeccd6452710bffb5
 EXPOSE 3000
 ENV NODE_ENV=production
 WORKDIR /app
