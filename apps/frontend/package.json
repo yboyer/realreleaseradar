@@ -16,7 +16,7 @@
     "vue-cookies": "1.8.6"
   },
   "devDependencies": {
-    "@tsconfig/node26": "26.0.1",
+    "@tsconfig/node26": "26.0.2",
     "@types/node": "26.6.6",
     "@vitejs/plugin-vue": "6.0.10",
     "vue-tsc": "3.3.14",
