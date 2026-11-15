@@ -16,7 +16,7 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@biomejs/biome": "2.6.6",
+    "@biomejs/biome": "2.6.7",
     "@yboyer/config": "2.4.0"
   },
   "packageManager": "pnpm@12.18.0"
