@@ -23,7 +23,7 @@ jobs:
         with:
           node-version-file: '.node-version'
       - id: release
-        uses: yboyer/actions/semantic-release@eba89bfeff46ead076c6e02f7e677dc025b20cd1
+        uses: yboyer/actions/semantic-release@c3f95923eebbadd299a449394696a4f1ad24084b
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
