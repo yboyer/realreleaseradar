@@ -5,7 +5,6 @@ packages:
 minimumReleaseAge: 4320
 minimumReleaseAgeExclude:
   - '@yboyer/config@2.4.0'
-  - '@yboyer/semantic-release-config@1.0.0'
 saveExact: true
 
 allowBuilds:
