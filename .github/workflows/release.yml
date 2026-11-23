@@ -22,8 +22,22 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: '.node-version'
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - run: pnpm install --frozen-lockfile
       - id: release
-        uses: yboyer/actions/semantic-release@09809ba4aef750373e8e258c96d5150d713bcc34 # v1.6.0
+        shell: bash
+        run: |
+          export LC_ALL=C
+          tags_before=$(mktemp)
+          trap 'rm -f "$tags_before"' EXIT
+          git tag --list | sort > "$tags_before"
+          pnpm exec semantic-release
+          tag=$(comm -13 "$tags_before" <(git tag --list | sort))
+          if [[ "$tag" == *$'\n'* ]]; then
+            echo "Expected at most one new release tag." >&2
+            exit 1
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

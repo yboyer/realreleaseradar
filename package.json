@@ -17,7 +17,10 @@
   "license": "MIT",
   "devDependencies": {
     "@biomejs/biome": "2.6.8",
-    "@yboyer/config": "2.4.0"
+    "@semantic-release/git": "11.0.1",
+    "@yboyer/config": "2.4.0",
+    "@yboyer/semantic-release-config": "1.0.0",
+    "semantic-release": "26.0.1"
   },
   "packageManager": "pnpm@12.21.0"
 }
