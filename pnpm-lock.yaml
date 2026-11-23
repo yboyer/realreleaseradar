@@ -190,9 +190,6 @@ importers:
       '@yboyer/semantic-release-config':
         specifier: 1.0.0
         version: 1.0.0(semantic-release@26.0.1(supports-color@7.2.0))(supports-color@7.2.0)
-      semantic-release:
-        specifier: 26.0.1
-        version: 26.0.1(supports-color@7.2.0)
 
   apps/backend:
     dependencies:
