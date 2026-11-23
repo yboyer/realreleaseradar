@@ -23,7 +23,7 @@ jobs:
         with:
           node-version-file: '.node-version'
       - id: release
-        uses: yboyer/actions/semantic-release@c3f95923eebbadd299a449394696a4f1ad24084b
+        uses: yboyer/actions/semantic-release@3c68fdd64dad9154671b24c498f63b3b64c77885 # v1.7.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -46,7 +46,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: 🐳 Build and publish
-        uses: yboyer/actions/docker-publish@09809ba4aef750373e8e258c96d5150d713bcc34 # v1.6.0
+        uses: yboyer/actions/docker-publish@3c68fdd64dad9154671b24c498f63b3b64c77885 # v1.7.0
         with:
           image: ghcr.io/yboyer/realreleaseradar
           dockerfile: Dockerfile
