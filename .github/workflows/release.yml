@@ -23,7 +23,23 @@ jobs:
         with:
           node-version-file: '.node-version'
       - id: release
-        uses: yboyer/actions/semantic-release@8bbad4d958a9a563e864cff06b0f4feb2951a6f7
+        shell: bash
+        run: |
+          export LC_ALL=C
+          tags_before=$(mktemp)
+          trap 'rm -f "$tags_before"' EXIT
+          git tag --list | sort > "$tags_before"
+          npx --yes --package=semantic-release@26.0.1 --package=@yboyer/semantic-release-config@1.0.0 -c '
+            mkdir -p node_modules/@yboyer &&
+            ln -s "$(dirname "$(command -v semantic-release)")/../@yboyer/semantic-release-config" node_modules/@yboyer/semantic-release-config &&
+            semantic-release
+          '
+          tag=$(comm -13 "$tags_before" <(git tag --list | sort))
+          if [[ "$tag" == *$'\n'* ]]; then
+            echo "Expected at most one new release tag." >&2
+            exit 1
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
