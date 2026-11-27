@@ -197,8 +197,8 @@ importers:
         specifier: 1.4.7
         version: 1.4.7
       cron:
-        specifier: 4.4.1
-        version: 4.4.1
+        specifier: 4.4.2
+        version: 4.4.2
       envalid:
         specifier: 9.0.0
         version: 9.0.0
@@ -762,8 +762,8 @@ packages:
     resolution: {integrity: sha512-yki5XnKuf750l50uGTllt6kKILY4nQ1eNIQatoXEByZ5dWgnKqbnqmTrBE5B4N7lrMJKQ2ytWMiTO2o0v6Ew/w==}
     engines: {node: '>= 0.6'}
 
-  cron@4.4.1:
-    resolution: {integrity: sha512-ycMs0wTezbyWLuT6JKQWpLPr2q4H0x9yZfcitH+sThOg/VtijRHFHkikE683gjzgmziz0sdyQY5ZWdcNfBVXtA==}
+  cron@4.4.2:
+    resolution: {integrity: sha512-sXlg/D5CdX7M4q3isDCbBD3XCHXExr3yBFwfZ1xaSe/IUVd3DmsnVzeSRjLlJeohbK+j4UtdKmY9k735RMl5XQ==}
     engines: {node: '>=18.x'}
 
   cross-spawn@7.0.6:
@@ -2079,7 +2079,7 @@ snapshots:
 
   cookie@0.7.2: {}
 
-  cron@4.4.1:
+  cron@4.4.2:
     dependencies:
       '@types/luxon': 3.7.6
       luxon: 3.7.2
