@@ -19,5 +19,5 @@
     "@biomejs/biome": "2.6.8",
     "@yboyer/config": "2.4.1"
   },
-  "packageManager": "pnpm@12.22.0"
+  "packageManager": "pnpm@12.23.0"
 }
