@@ -182,8 +182,8 @@ importers:
         specifier: 2.6.8
         version: 2.6.8
       '@yboyer/config':
-        specifier: 2.4.0
-        version: 2.4.0(@biomejs/biome@2.6.8)(eslint@10.15.0)(typescript@6.0.3)
+        specifier: 2.4.1
+        version: 2.4.1(@biomejs/biome@2.6.8)(eslint@10.15.0)(typescript@6.0.3)
 
   apps/backend:
     dependencies:
@@ -655,8 +655,8 @@ packages:
   '@vue/shared@3.5.46':
     resolution: {integrity: sha512-P1WePbdzHrcIciWtmY2Im9EFhdakd3rZxYqvalOa3SfoxtF35Q8Uhmj1tKn6bWP4utcOpN8ao6BoJUItq0Uf+g==}
 
-  '@yboyer/config@2.4.0':
-    resolution: {integrity: sha512-Fj+eyCVBfUEj41tHYdjOitJ/0RqMvetXUl2XGBCCD6jVe21nZ5gz1F1asoesSABpfxHL0dT69rJ7ul81JB/EXA==}
+  '@yboyer/config@2.4.1':
+    resolution: {integrity: sha512-daFoU1SdhJ/Lm1N6381JR5ubE9gRm73Rv1EsLudu5nUoR510KYkkT+Q4jd+5WQw01vsK6J2l7vmhrgaybNtgiQ==}
     peerDependencies:
       '@biomejs/biome': ^2.6.2
       vite-plus: ^1.1.0
@@ -851,8 +851,8 @@ packages:
     resolution: {integrity: sha512-TtpcNJ3XAzx3Gq8sWRzJaVajRs0uVxA2YAkdb1jm2YkPz4G6egUFAyA3n5vtEIZefPk5Wa4UXbKuS5fKkJWdgA==}
     engines: {node: '>=10'}
 
-  eslint-plugin-perfectionist@5.13.0:
-    resolution: {integrity: sha512-kPlqE2Kdh0njsad9S9xL/xnq+NNVUsga/uS3yf6axE0RddACM3Q+idJyethC7R+C9b73+NRhAWvKyXPrkl0nFA==}
+  eslint-plugin-perfectionist@5.14.0:
+    resolution: {integrity: sha512-z8mINHD3a4lMwtCuBJ5d5oZjfKwFjWF1gVKXxnUr04beCFwFYQP4TWd+182Mnk038n5Wc+LtSuvQMpbnPvdVSg==}
     engines: {node: ^20.0.0 || >=22.0.0}
     peerDependencies:
       eslint: ^8.45.0 || ^9.0.0 || ^10.0.0
@@ -1956,9 +1956,9 @@ snapshots:
 
   '@vue/shared@3.5.46': {}
 
-  '@yboyer/config@2.4.0(@biomejs/biome@2.6.8)(eslint@10.15.0)(typescript@6.0.3)':
+  '@yboyer/config@2.4.1(@biomejs/biome@2.6.8)(eslint@10.15.0)(typescript@6.0.3)':
     dependencies:
-      eslint-plugin-perfectionist: 5.13.0(eslint@10.15.0)(typescript@6.0.3)
+      eslint-plugin-perfectionist: 5.14.0(eslint@10.15.0)(typescript@6.0.3)
     optionalDependencies:
       '@biomejs/biome': 2.6.8
     transitivePeerDependencies:
@@ -2147,7 +2147,7 @@ snapshots:
 
   escape-string-regexp@4.0.0: {}
 
-  eslint-plugin-perfectionist@5.13.0(eslint@10.15.0)(typescript@6.0.3):
+  eslint-plugin-perfectionist@5.14.0(eslint@10.15.0)(typescript@6.0.3):
     dependencies:
       '@typescript-eslint/types': 8.73.0
       '@typescript-eslint/utils': 8.73.0(eslint@10.15.0)(typescript@6.0.3)
